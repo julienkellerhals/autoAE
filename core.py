@@ -209,7 +209,7 @@ for destination in flightList:
 
 # sandbox
 soup = BeautifulSoup(addFlightsReq.text,'html.parser')
-with open("output1.html", "w", encoding='utf-8') as file:
+with open("output.html", "w", encoding='utf-8') as file:
     file.write(str(soup))
 
 
