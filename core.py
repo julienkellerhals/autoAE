@@ -27,34 +27,36 @@ gameServer = {
     "world": worldId,
     "userid": userId
 }
-print("entering world {} with {}".format(worldId, airlineName))
 
 
 # enter world
+print("entering world {} with {}".format(worldId, airlineName))
 phpSessidReq = api.enterWorld(worldReq, gameServer)
 
 
+# create new route from departure airport
+flightCountry = input("Flight country: ")
+flightRegion = input("Flight region: ")
+requiredRunway = input("Minimum runway length: ")
+rangeMin = input("Flight minimum range: ")
+rangeMax = input("Flight maximum range: ")
+depAirportCode = input("Departure airport code: ")
 
-# get all reachable airports from dep with args
-# searchparams (create parser)
 searchParams = {
-    "country": "",
-    "region": "",
-    "runway": "4678",
-    "rangenmin": "823",
-    "rangemax": "1266",
-    "city": "GZA"
+    "country": flightCountry,
+    "region": flightRegion,
+    "runway": requiredRunway,
+    "rangenmin": rangeMin,
+    "rangemax": rangeMax,
+    "city": depAirportCode
 }
 
+# get all reachable airports from dep with args
 print("getting all possible routes ...")
-listFlightsReq = requests.get(
-    "http://ae31.airline-empires.com/rentgate.php",
-    params=searchParams,
-    cookies=phpSessidReq.cookies
-)
-print("{:20} {:10} {:10} {:10}".format("Destination", "First", "Buisness","Economy"))
-flightListPage = BeautifulSoup(listFlightsReq.text, 'html.parser')
-flightList = flightListPage.findAll('tr')[2:]
+listFlightsReq, flightsDf = api.getFlights(phpSessidReq, searchParams)
+print(flightsDf.to_string(index=False))
+
+
 for destination in flightList:
     routeDetailsUrl = destination.findAll('a')[1:][0].attrs['href']
     # getting flight details (demand)
@@ -186,10 +188,11 @@ for destination in flightList:
 
 # TODO when adding flights dont forget to check how many slots are avaiable and order additional or throw error message that the are no gates available
 
+
 # sandbox
 # soup = BeautifulSoup(worldPage.text,'html.parser')
 with open("output.html", "w", encoding='utf-8') as file:
-    file.write(str(worldList))
+    file.write(str(flightListTable))
 
 
 

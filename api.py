@@ -79,3 +79,47 @@ def enterWorld(worldReq, gameServer):
         data=gameServer
     )
     return phpSessidReq
+
+def getFlights(phpSessidReq, searchParams):
+    slotsRegex = r"\((\d*).*\)"
+    flightsCols = [
+        "airport",
+        "flightUrl",
+        "flightCreated",
+        "slots",
+        "gatesAvailable"
+    ]
+    flightsDf = pd.DataFrame(columns=flightsCols)
+
+    listFlightsReq = requests.get(
+        "http://ae31.airline-empires.com/rentgate.php",
+        params=searchParams,
+        cookies=phpSessidReq.cookies
+    )
+    flightListPage = BeautifulSoup(listFlightsReq.text, 'html.parser')
+    flightListTable = flightListPage.find_all("form")[1]
+    flightList = flightListTable.find_all("tr")[1:]
+    for flightRow in flightList:
+        airport = flightRow.find_all("td")[0].text
+        flightUrl = flightRow.find_all("td")[5].find("a").attrs['href']
+        if (flightRow.find_all("td")[5].find("div") == None):
+            flightCreated = False
+        else:
+            flightCreated  = True    
+        try:
+            slots = re.search(slotsRegex, flightRow.find_all("td")[6].text).group(1)
+        except AttributeError:
+            slots = None
+        if (flightRow.find_all("td")[10].find("input") == None):
+            gatesAvailable = False
+        else:
+            gatesAvailable = True
+        flight = pd.Series([
+            airport,
+            flightUrl,
+            flightCreated,
+            slots,
+            gatesAvailable
+        ], index=flightsCols)
+        flightsDf = flightsDf.append(flight, ignore_index=True)
+    return listFlightsReq, flightsDf
