@@ -1,3 +1,4 @@
 .vscode
 output.html
 cred.py
+/__pycache__/

@@ -1,48 +1,34 @@
-import requests
+import api
 from bs4 import BeautifulSoup
-import re
-import math
-import cred
+from getpass import getpass
+import pandas as pd
 
-# get page session id
-print("Getting homepage cookies ...")
-forumSessidReq = requests.get("http://www.airline-empires.com/index.php?/page/home.html")
 
-# do login
-print("Logging in ...")
-loginReq = requests.post(
-    "http://www.airline-empires.com/index.php?app=core&module=global&section=login&do=process",
-    cookies=forumSessidReq.cookies,
-    data=cred.user
-)
-print("logged in with user: {}".format(cred.user['ips_username']))
+# get password and login
+username = input("Please enter username: ")
+password = getpass()
+# TODO wrong login
+loginReq = api.login(username, password)
 
-# get worlds
-print("getting all worlds ...")
-worldReq = requests.get(
-    "http://www.airline-empires.com/index.php?app=ae",
-    cookies=loginReq.cookies,
-)
-worldPage = BeautifulSoup(worldReq.text, 'html.parser')
-# first 2 are login and something else forms, world listing start at 3 (array bellow)
-worldList = worldPage.findAll('form')[2:]
-for world in worldList:
-    worldInfo = world.findAll('input')[:2]
-    try:
-        worldId = worldInfo[0].attrs['value']
-        userId = worldInfo[1].attrs['value']
-        print("world number: {:20} user id: {}".format(worldId,userId))
-    except KeyError as e:
-        print("Server can handle more than one airline per player")
 
-# TODO: world selection
-
+# get world to join
+worldReq, airlineDf = api.getWorld(loginReq)
+tryServer = True
+while tryServer:
+    airlineName = input("Please enter one of above mentioned airline names: ")
+    # TODO Problem if airline has the same name on different server
+    worldId = airlineDf[['worldId']].loc[airlineDf['name'] == airlineName].to_string(header=False, index=False).strip()
+    userId = airlineDf[['userId']].loc[airlineDf['name'] == airlineName].to_string(header=False, index=False).strip()
+    if ('Empty DataFrame' not in worldId and 'Empty DataFrame' not in userId):
+        tryServer = False
+    else:
+        print("Airline does not exist, retry.")
 gameServer = {
     "world": worldId,
     "userid": userId
 }
+print("entering world {} with {}".format(worldId, airlineName))
 
-print("entering world {}".format(worldId))
 
 # enter world and get php session
 phpSessidReq = requests.post(
@@ -208,9 +194,9 @@ for destination in flightList:
 # TODO when adding flights dont forget to check how many slots are avaiable and order additional or throw error message that the are no gates available
 
 # sandbox
-soup = BeautifulSoup(addFlightsReq.text,'html.parser')
+# soup = BeautifulSoup(worldPage.text,'html.parser')
 with open("output.html", "w", encoding='utf-8') as file:
-    file.write(str(soup))
+    file.write(str(worldList))
 
 
 
