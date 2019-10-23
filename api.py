@@ -70,3 +70,12 @@ def getWorld(loginReq):
         "cash"
     ], index=False))
     return worldReq, airlineDf
+
+def enterWorld(worldReq, gameServer):
+    # enter world and get php session
+    phpSessidReq = requests.post(
+        "http://www.airline-empires.com/index.php?app=ae&module=gameworlds&section=enterworld",
+        cookies=worldReq.cookies,
+        data=gameServer
+    )
+    return phpSessidReq

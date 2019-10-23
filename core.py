@@ -30,16 +30,9 @@ gameServer = {
 print("entering world {} with {}".format(worldId, airlineName))
 
 
-# enter world and get php session
-phpSessidReq = requests.post(
-    "http://www.airline-empires.com/index.php?app=ae&module=gameworlds&section=enterworld",
-    cookies=worldReq.cookies,
-    data=gameServer
-)
+# enter world
+phpSessidReq = api.enterWorld(worldReq, gameServer)
 
-# TODO not used
-# go to airline mainpage
-mainPageReq = requests.get("http://ae31.airline-empires.com/main.php", cookies=phpSessidReq.cookies)
 
 
 # get all reachable airports from dep with args
