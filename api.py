@@ -148,6 +148,7 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
     rawData = re.findall(r"data: \[\d*,\d*,\d*\]", highChartsScript)[0]
     flightDemand = [int(x) for x in re.findall(r"\d*,\d*,\d*", rawData)[0].split(',')]
     [ int(x) for x in "40 1".split(" ") ]
+    print()
     print("{:20} {:10} {:10} {:10}".format(
         flight['airport'],
         flightDemand[0],
@@ -302,9 +303,13 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
             print("\tAdded {} flight(s)".format(availableAircraftRow['frequency']))
             break
         else:
-            addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['frequency']
+            if ((totFreq + availableAircraftRow['frequency']) > availableAircraftRow['avgFreq']):
+                addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = (availableAircraftRow['avgFreq'] - totFreq)
+                totFreq += (availableAircraftRow['avgFreq'] - totFreq)
+            else:
+                addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['frequency']
+                totFreq += availableAircraftRow['frequency']
             totPassengerY += (availableAircraftRow['seatY'] * availableAircraftRow['frequency'])
-            totFreq += availableAircraftRow['frequency']
             if (totPassengerY >= flightDemandSeries['seatReqY']):
                 addFlightsReq = requests.post(
                     "http://ae31.airline-empires.com/route_details.php?city1={}&city2={}".format(
