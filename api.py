@@ -125,7 +125,7 @@ def getFlights(phpSessidReq, searchParams):
         flightsDf = flightsDf.append(flight, ignore_index=True)
     return listFlightsReq, flightsDf
 
-def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapacityFlag, flight):
+def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapacityFlag, autoSlots, flight):
     availableAircraftsCols = [
         "frequency",
         "aircraft",
@@ -289,35 +289,69 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
         "qty": 1
     }
     for idx, availableAircraftRow in availableAircraftsDf.iterrows():
-        # add flight
-        if (availableAircraftRow['frequency'] > availableAircraftRow['frequency']):
-            addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['frequency']
-            addFlightsReq = requests.post(
-                "http://ae31.airline-empires.com/route_details.php?city1={}&city2={}".format(
-                    routeAircraftPostData['city1'],
-                    routeAircraftPostData['city2']
-                ),
-                cookies=phpSessidReq.cookies,
-                data=addFlightsPostData
+        if (availableAircraftRow['frequency'] >= availableAircraftRow['avgFreq']):
+            # case when required frequency less than available
+            addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['avgFreq']
+
+            # check slots
+            checkSlots(phpSessidReq, autoSlots, flight['airport'], flight['slots'], availableAircraftRow['avgFreq'])
+
+            # add flight
+            addFlight(
+                phpSessidReq,
+                routeAircraftPostData['city1'],
+                routeAircraftPostData['city2'],
+                addFlightsPostData,
+                availableAircraftRow['avgFreq']
             )
-            print("\tAdded {} flight(s)".format(availableAircraftRow['frequency']))
             break
         else:
             if ((totFreq + availableAircraftRow['frequency']) > availableAircraftRow['avgFreq']):
+                # case when enought flights where added
                 addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = (availableAircraftRow['avgFreq'] - totFreq)
                 totFreq += (availableAircraftRow['avgFreq'] - totFreq)
             else:
+                # continue adding flights
                 addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['frequency']
                 totFreq += availableAircraftRow['frequency']
             totPassengerY += (availableAircraftRow['seatY'] * availableAircraftRow['frequency'])
             if (totPassengerY >= flightDemandSeries['seatReqY']):
-                addFlightsReq = requests.post(
-                    "http://ae31.airline-empires.com/route_details.php?city1={}&city2={}".format(
-                        routeAircraftPostData['city1'],
-                        routeAircraftPostData['city2']
-                    ),
-                    cookies=phpSessidReq.cookies,
-                    data=addFlightsPostData
+                # check if the demand is meat (only checks Economy)
+
+                # check slots, see func
+                checkSlots(phpSessidReq, autoSlots, flight['airport'], flight['slots'], availableAircraftRow['avgFreq'])
+
+                # add flight
+                addFlight(
+                    phpSessidReq,
+                    routeAircraftPostData['city1'],
+                    routeAircraftPostData['city2'],
+                    addFlightsPostData,
+                    totFreq
                 )
-                print("\tAdded {} flight(s)".format(totFreq))
-                break
+
+def checkSlots(phpSessidReq, autoSlots, airport, airportSlots, flightReqSlots):
+    airportSlots = int(airportSlots)
+    # check if auto slot is on
+    if (autoSlots == 'y'):
+        # check if there is enought slots, else buy some
+        if (airportSlots < flightReqSlots):
+            slotsLeaseData = {
+                "quicklease": "Lease 1 {}".format(airport)
+            }
+            addSlotsReq = requests.post(
+                "http://ae31.airline-empires.com/rentgate.php",
+                cookies=phpSessidReq.cookies,
+                data=slotsLeaseData
+            )
+
+def addFlight(phpSessidReq, city1, city2, addFlightsPostData, frequency):
+    addFlightsReq = requests.post(
+        "http://ae31.airline-empires.com/route_details.php?city1={}&city2={}".format(
+            city1,
+            city2
+        ),
+        cookies=phpSessidReq.cookies,
+        data=addFlightsPostData
+    )
+    print("\tAdded {} flight(s)".format(frequency))

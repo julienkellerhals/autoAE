@@ -62,6 +62,7 @@ print(availableFlightsDf.to_string(index=False))
 # create routes from airport
 aircraftType = input("Aircraft type to use: ")
 reducedCapacityFlag = input("Allow flights over intended range? (y/n) ")
+autoSlots = input("Automatically buy slots? (y/n) ")
 print("{:20} {:10} {:10} {:10}".format(
         "Destination",
         "First",
@@ -69,10 +70,13 @@ print("{:20} {:10} {:10} {:10}".format(
         "Economy"
     ))
 for idx, flight in availableFlightsDf.iterrows():
-    api.createFlight(phpSessidReq, depAirportCode, aircraftType, reducedCapacityFlag, flight)
+    api.createFlight(phpSessidReq, depAirportCode, aircraftType, reducedCapacityFlag, autoSlots, flight)
 
 # TODO when adding flights dont forget to check how many slots are avaiable and order additional or throw error message that the are no gates available
+# TODO Auto buy slots
 # TODO Add possibility to review made routes and add missing freq
+# TODO Review existing flights if it achieves demand
+# TODO Fix no available aircraft is wrong
 
 # sandbox
 # soup = BeautifulSoup(worldPage.text,'html.parser')
