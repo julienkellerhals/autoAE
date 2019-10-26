@@ -125,7 +125,7 @@ def getFlights(phpSessidReq, searchParams):
         flightsDf = flightsDf.append(flight, ignore_index=True)
     return listFlightsReq, flightsDf
 
-def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapacityFlag, autoSlots, flight):
+def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapacityFlag, autoSlots, maxFreq, flight):
     availableAircraftsCols = [
         "frequency",
         "aircraft",
@@ -184,7 +184,7 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
     for availableAircraftRow in availableAircraftsTable:
         aircraftData = availableAircraftRow.find_all('td', recursive=False)
         if (aircraftData[0].text == 'You do not have any aircraft available to serve this route.'):
-            break
+            print("You do not have any aircraft available to serve this route. (May also be a bug in AE code)")
         else:
             frequency = aircraftData[0].find_all('option')[-1:][0].text
         aircraftId = aircraftData[1].text
@@ -245,7 +245,7 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
     availableAircraftsDf['freqC'] = availableAircraftsDf['seatReqC'] / availableAircraftsDf['seatC']
     availableAircraftsDf['freqY'] = availableAircraftsDf['seatReqY'] / availableAircraftsDf['seatY']
     availableAircraftsDf = availableAircraftsDf.replace([np.inf, -np.inf], np.nan)
-    availableAircraftsDf['avgFreq'] = availableAircraftsDf[['freqF','freqC','freqY']].mean(axis=1) + 1
+    availableAircraftsDf['avgFreq'] = availableAircraftsDf[['freqF','freqC','freqY']].mean(axis=1) + 0.5
     # availableAircraftsDf[['avgFreq']].loc[availableAircraftsDf['avgFreq'] < availableAircraftsDf['freqY']](availableAircraftsDf[['freqY']].loc[availableAircraftsDf['avgFreq'] < availableAircraftsDf['freqY']])
     availableAircraftsDf['avgFreq'] = availableAircraftsDf['avgFreq'].apply(np.ceil)
 
@@ -289,61 +289,81 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
         "qty": 1
     }
     for idx, availableAircraftRow in availableAircraftsDf.iterrows():
-        if (availableAircraftRow['frequency'] >= availableAircraftRow['avgFreq']):
-            # case when required frequency less than available
-            addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['avgFreq']
-
-            # check slots
-            checkSlots(phpSessidReq, autoSlots, flight['airport'], flight['slots'], availableAircraftRow['avgFreq'])
-
-            # add flight
-            addFlight(
-                phpSessidReq,
-                routeAircraftPostData['city1'],
-                routeAircraftPostData['city2'],
-                addFlightsPostData,
-                availableAircraftRow['avgFreq']
-            )
-            break
+        if (availableAircraftRow['avgFreq'] > maxFreq):
+            print("{} exceeded max defined frequency. No flights were added".format(availableAircraftRow['type']))
+            if (aircraftTypeFilter != ''):
+                break
         else:
-            if ((totFreq + availableAircraftRow['frequency']) > availableAircraftRow['avgFreq']):
-                # case when enought flights where added
-                addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = (availableAircraftRow['avgFreq'] - totFreq)
-                totFreq += (availableAircraftRow['avgFreq'] - totFreq)
+            if (availableAircraftRow['frequency'] >= availableAircraftRow['avgFreq']):
+                # case when required frequency less than available
+                addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['avgFreq']
+
+                # check slots
+                slotsAvailable = checkSlots(phpSessidReq, autoSlots, flight['airport'], flight['slots'], availableAircraftRow['avgFreq'], flight['gatesAvailable'])
+
+                if slotsAvailable:
+                    # add flight
+                    addFlight(
+                        phpSessidReq,
+                        routeAircraftPostData['city1'],
+                        routeAircraftPostData['city2'],
+                        addFlightsPostData,
+                        availableAircraftRow['avgFreq']
+                    )
+                break
             else:
-                # continue adding flights
-                addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['frequency']
-                totFreq += availableAircraftRow['frequency']
-            totPassengerY += (availableAircraftRow['seatY'] * availableAircraftRow['frequency'])
-            if (totPassengerY >= flightDemandSeries['seatReqY']):
+                if ((totFreq + availableAircraftRow['frequency']) > availableAircraftRow['avgFreq']):
+                    # case when enought flights were added
+                    addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = (availableAircraftRow['avgFreq'] - totFreq)
+                    totFreq += (availableAircraftRow['avgFreq'] - totFreq)
+                else:
+                    # continue adding flights
+                    addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['frequency']
+                    totFreq += availableAircraftRow['frequency']
+                totPassengerY += (availableAircraftRow['seatY'] * availableAircraftRow['frequency'])
                 # check if the demand is meat (only checks Economy)
+                if (totPassengerY >= flightDemandSeries['seatReqY']):
 
-                # check slots, see func
-                checkSlots(phpSessidReq, autoSlots, flight['airport'], flight['slots'], availableAircraftRow['avgFreq'])
+                    # check slots, see func
+                    slotsAvailable = checkSlots(phpSessidReq, autoSlots, flight['airport'], flight['slots'], availableAircraftRow['avgFreq'], flight['gatesAvailable'])
 
-                # add flight
-                addFlight(
-                    phpSessidReq,
-                    routeAircraftPostData['city1'],
-                    routeAircraftPostData['city2'],
-                    addFlightsPostData,
-                    totFreq
+                    if slotsAvailable:
+                        # add flight
+                        addFlight(
+                            phpSessidReq,
+                            routeAircraftPostData['city1'],
+                            routeAircraftPostData['city2'],
+                            addFlightsPostData,
+                            totFreq
+                        )
+                    break
+
+def checkSlots(phpSessidReq, autoSlots, airport, airportSlots, flightReqSlots, gatesAvailable):
+    slotsAvailable = True
+    try:
+        airportSlots = int(airportSlots)
+    except TypeError:
+        airportSlots = 0
+    # check if there is enought slots, else buy some
+    if (airportSlots < flightReqSlots):
+        slotsAvailable = False
+        # check if auto slot is on
+        if (autoSlots == 'y'):
+            if gatesAvailable:
+                slotsLeaseData = {
+                    "quicklease": "Lease 1 {}".format(airport)
+                }
+                addSlotsReq = requests.post(
+                    "http://ae31.airline-empires.com/rentgate.php",
+                    cookies=phpSessidReq.cookies,
+                    data=slotsLeaseData
                 )
+                slotsAvailable = True
+            else:
+                print("No slots available, buy terminal instead")
+                slotsAvailable = False
+    return slotsAvailable
 
-def checkSlots(phpSessidReq, autoSlots, airport, airportSlots, flightReqSlots):
-    airportSlots = int(airportSlots)
-    # check if auto slot is on
-    if (autoSlots == 'y'):
-        # check if there is enought slots, else buy some
-        if (airportSlots < flightReqSlots):
-            slotsLeaseData = {
-                "quicklease": "Lease 1 {}".format(airport)
-            }
-            addSlotsReq = requests.post(
-                "http://ae31.airline-empires.com/rentgate.php",
-                cookies=phpSessidReq.cookies,
-                data=slotsLeaseData
-            )
 
 def addFlight(phpSessidReq, city1, city2, addFlightsPostData, frequency):
     addFlightsReq = requests.post(
@@ -354,4 +374,4 @@ def addFlight(phpSessidReq, city1, city2, addFlightsPostData, frequency):
         cookies=phpSessidReq.cookies,
         data=addFlightsPostData
     )
-    print("\tAdded {} flight(s)".format(frequency))
+    print("\tAdded {} flight(s)".format(int(frequency)))

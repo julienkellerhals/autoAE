@@ -63,6 +63,7 @@ print(availableFlightsDf.to_string(index=False))
 aircraftType = input("Aircraft type to use: ")
 reducedCapacityFlag = input("Allow flights over intended range? (y/n) ")
 autoSlots = input("Automatically buy slots? (y/n) ")
+maxFreq = int(input("Aircraft max frequency: "))
 print("{:20} {:10} {:10} {:10}".format(
         "Destination",
         "First",
@@ -70,28 +71,28 @@ print("{:20} {:10} {:10} {:10}".format(
         "Economy"
     ))
 for idx, flight in availableFlightsDf.iterrows():
-    api.createFlight(phpSessidReq, depAirportCode, aircraftType, reducedCapacityFlag, autoSlots, flight)
+    api.createFlight(
+        phpSessidReq,
+        depAirportCode,
+        aircraftType,
+        reducedCapacityFlag,
+        autoSlots,
+        maxFreq,
+        flight
+    )
 
-# TODO when adding flights dont forget to check how many slots are avaiable and order additional or throw error message that the are no gates available
-# TODO Auto buy slots
-# TODO Add possibility to review made routes and add missing freq
-# TODO Review existing flights if it achieves demand
-# TODO Fix no available aircraft is wrong
 
 # sandbox
 # soup = BeautifulSoup(worldPage.text,'html.parser')
-with open("output.html", "w", encoding='utf-8') as file:
-    file.write(str(flightListPage))
+# with open("output.html", "w", encoding='utf-8') as file:
+#     file.write(str(flightListPage))
 
 
 
 # TODO
-
-# create api
-# chose correct airplane
-# auto lease gate / build terminal if possible
-# fix ebl bug
-# do not do duplicate flights
-# split flights on multiple aircrafts (could be done with the dataframe of all aircrafts)
-
+# TODO when adding flights dont forget to check how many slots are avaiable and order additional or throw error message that the are no gates available
+# TODO Add possibility to review made routes and add missing freq
+# TODO Review existing flights if it achieves demand
+# TODO Fix no available aircraft is wrong
+# TODO Add dataviz for freq by class by plane, to findo ut which plane size is required
 # parse error messages
