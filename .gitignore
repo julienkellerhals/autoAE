@@ -2,3 +2,5 @@
 output.html
 cred.py
 /__pycache__/
+/airportList.csv
+/doneAirportList.csv
