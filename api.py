@@ -6,24 +6,80 @@ import cred
 import pandas as pd
 import numpy as np
 
+# helper function
+def getRequest(url, cookies=None, params=None):
+    r = None
+    reqError = True
+    errorCode = None
+    try:
+        r = requests.get(
+            url=url,
+            cookies=cookies,
+            params=params,
+            timeout=10
+        )
+        r.raise_for_status()
+        reqError = False
+    except requests.exceptions.Timeout as e:
+        print("request timed-out")
+        print(e)
+    except requests.exceptions.ConnectionError as e:
+        print("connection error")
+        print(e)
+    except requests.exceptions.HTTPError as e:
+        errorCode = r.status_code
+        print(e)
+    return r, reqError, errorCode
+
+def postRequest(url, cookies, data):
+    r = None
+    reqError = True
+    errorCode = None
+    try:
+        r = requests.post(
+            url,
+            cookies=cookies,
+            data=data,
+            timeout=10
+        )
+        r.raise_for_status()
+        reqError = False
+    except requests.exceptions.Timeout as e:
+        print("request timed-out")
+        print(e)
+    except requests.exceptions.ConnectionError as e:
+        print("connection error")
+        print(e)
+    except requests.exceptions.HTTPError as e:
+        errorCode = r.status_code
+        print(e)
+    return r, reqError, errorCode
+
 # get page session id
-print("Getting homepage cookies ...")
-forumSessidReq = requests.get("http://www.airline-empires.com/index.php?/page/home.html")
+sessionReqError = True
+while sessionReqError:
+    print("Getting homepage cookies ...")
+    forumSessidReq, sessionReqError, _ = getRequest(
+        url="http://www.airline-empires.com/index.php?/page/home.html"
+    )
+
 
 def login(username, password):
+    loginReqError = True
     cred.user['ips_username'] = username
     cred.user['ips_password'] = password
     # do login
-    print("Logging in ...")
-    loginReq = requests.post(
-        "http://www.airline-empires.com/index.php?app=core&module=global&section=login&do=process",
-        cookies=forumSessidReq.cookies,
-        data=cred.user
-    )
-    print("logged in with user: {}".format(cred.user['ips_username']))
+    while loginReqError:
+        print("Logging in ...")
+        loginReq, loginReqError, _ = postRequest(
+            url="http://www.airline-empires.com/index.php?app=core&module=global&section=login&do=process",
+            cookies=forumSessidReq.cookies,
+            data=cred.user
+        )
     return loginReq
 
 def getWorld(loginReq):
+    worldReqError = True
     airlineCols = [
         "worldName",
         "name",
@@ -35,53 +91,60 @@ def getWorld(loginReq):
     ]
     airlineDf = pd.DataFrame(columns=airlineCols)
     # get worlds
-    print("getting all worlds ...")
-    worldReq = requests.get(
-        "http://www.airline-empires.com/index.php?app=ae",
-        cookies=loginReq.cookies,
-    )
-    worldPage = BeautifulSoup(worldReq.text, 'html.parser')
-    htmlWorldList = worldPage.find_all("div","category_block block_wrap")
-    for world in htmlWorldList:
-        worldName = world.find("h3","maintitle").text
-        worldTable = world.find("table")
-        airlinesTable = worldTable.find_all("tr", "row1")
-        for airlineTable in airlinesTable:
-            airlineName = airlineTable.find_all("td")[2].text.strip()
-            airlineIdleAircraft = airlineTable.find_all("td")[5].text
-            airlineDOP = airlineTable.find_all("td")[7].text
-            airlineCash = airlineTable.find_all("td")[8].text
-            airlineWorldId = airlineTable.find_all("input")[0].attrs['value'].strip()
-            airlineUserId = airlineTable.find_all("input")[1].attrs['value'].strip()
-            airline = pd.Series([
-                worldName,
-                airlineName,
-                airlineIdleAircraft,
-                airlineDOP,
-                airlineCash,
-                airlineWorldId,
-                airlineUserId
-            ], index=airlineCols)
-            airlineDf = airlineDf.append(airline, ignore_index=True)
-    print(airlineDf.to_string(columns=[
-        "worldName",
-        "name",
-        "idleAircraft",
-        "DOP",
-        "cash"
-    ], index=False))
-    return worldReq, airlineDf
+    while worldReqError:
+        worldReq, worldReqError, errorCode = getRequest(
+            url="http://www.airline-empires.com/index.php?app=ae",
+            cookies=loginReq.cookies
+        )
+        if (errorCode == 401):
+            break
+    if not worldReqError:
+        print("logged in with user: {}".format(cred.user['ips_username']))
+        worldPage = BeautifulSoup(worldReq.text, 'html.parser')
+        htmlWorldList = worldPage.find_all("div","category_block block_wrap")
+        for world in htmlWorldList:
+            worldName = world.find("h3","maintitle").text
+            worldTable = world.find("table")
+            airlinesTable = worldTable.find_all("tr", "row1")
+            for airlineTable in airlinesTable:
+                airlineName = airlineTable.find_all("td")[2].text.strip()
+                airlineIdleAircraft = airlineTable.find_all("td")[5].text
+                airlineDOP = airlineTable.find_all("td")[7].text
+                airlineCash = airlineTable.find_all("td")[8].text
+                airlineWorldId = airlineTable.find_all("input")[0].attrs['value'].strip()
+                airlineUserId = airlineTable.find_all("input")[1].attrs['value'].strip()
+                airline = pd.Series([
+                    worldName,
+                    airlineName,
+                    airlineIdleAircraft,
+                    airlineDOP,
+                    airlineCash,
+                    airlineWorldId,
+                    airlineUserId
+                ], index=airlineCols)
+                airlineDf = airlineDf.append(airline, ignore_index=True)
+        print(airlineDf.to_string(columns=[
+            "worldName",
+            "name",
+            "idleAircraft",
+            "DOP",
+            "cash"
+        ], index=False))
+    return worldReq, airlineDf, worldReqError
 
 def enterWorld(worldReq, gameServer):
-    # enter world and get php session
-    phpSessidReq = requests.post(
-        "http://www.airline-empires.com/index.php?app=ae&module=gameworlds&section=enterworld",
-        cookies=worldReq.cookies,
-        data=gameServer
-    )
+    phpSessidReqError = True
+    while phpSessidReqError:
+        # enter world and get php session
+        phpSessidReq, phpSessidReqError, _ = postRequest(
+            url="http://www.airline-empires.com/index.php?app=ae&module=gameworlds&section=enterworld",
+            cookies=worldReq.cookies,
+            data=gameServer
+        )
     return phpSessidReq
 
 def getFlights(phpSessidReq, searchParams):
+    listFlightsReqError = True
     slotsRegex = r"\((\d*).*\)"
     flightsCols = [
         "airport",
@@ -92,11 +155,12 @@ def getFlights(phpSessidReq, searchParams):
     ]
     flightsDf = pd.DataFrame(columns=flightsCols)
 
-    listFlightsReq = requests.get(
-        "http://ae31.airline-empires.com/rentgate.php",
-        params=searchParams,
-        cookies=phpSessidReq.cookies
-    )
+    while listFlightsReqError:
+        listFlightsReq, listFlightsReqError, _ = getRequest(
+            url="http://ae31.airline-empires.com/rentgate.php",
+            cookies=phpSessidReq.cookies,
+            params=searchParams
+        )
     flightListPage = BeautifulSoup(listFlightsReq.text, 'html.parser')
     flightListTable = flightListPage.find_all("form")[1]
     flightList = flightListTable.find_all("tr")[1:]
@@ -126,6 +190,8 @@ def getFlights(phpSessidReq, searchParams):
     return listFlightsReq, flightsDf
 
 def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapacityFlag, autoSlots, maxFreq, flight):
+    flightDetailsReqError = True
+    availableAircraftsReqError = True
     availableAircraftsCols = [
         "frequency",
         "aircraft",
@@ -138,11 +204,12 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
     ]
     availableAircraftsDf = pd.DataFrame(columns=availableAircraftsCols)
 
-    # flight details
-    flightDetailsReq = requests.get(
-        "http://ae31.airline-empires.com/" + flight['flightUrl'],
-        cookies=phpSessidReq.cookies
-    )
+    while flightDetailsReqError:
+        # flight details
+        flightDetailsReq, flightDetailsReqError, _ = getRequest(
+            url="http://ae31.airline-empires.com/" + flight['flightUrl'],
+            cookies=phpSessidReq.cookies
+        )
     routeDetailsPage = BeautifulSoup(flightDetailsReq.text, 'html.parser')
     highChartsScript = routeDetailsPage.findAll('script')[8:9][0].text
     rawData = re.findall(r"data: \[\d*,\d*,\d*\]", highChartsScript)[0]
@@ -167,16 +234,17 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
         "qty": 1
     }
 
-    # look for available aircrafts
-    # post data required in order to see all available aricrafts
-    availableAircraftsReq = requests.post(
-        "http://ae31.airline-empires.com/route_details.php?city1={}&city2={}".format(
-            routeAircraftPostData['city1'],
-            routeAircraftPostData['city2']
-        ),
-        cookies=phpSessidReq.cookies,
-        data=routeAircraftPostData
-    )
+    while availableAircraftsReqError:
+        # look for available aircrafts
+        # post data required in order to see all available aricrafts
+        availableAircraftsReq, availableAircraftsReqError, _ = postRequest(
+            url="http://ae31.airline-empires.com/route_details.php?city1={}&city2={}".format(
+                routeAircraftPostData['city1'],
+                routeAircraftPostData['city2']
+            ),
+            cookies=phpSessidReq.cookies,
+            data=routeAircraftPostData
+        )
     availableAircraftsPage = BeautifulSoup(availableAircraftsReq.text, 'html.parser')
     newFlightsPage = availableAircraftsPage.find("div", {"id": "newflights"})
     availableAircraftsTable = newFlightsPage.find("td",text="Type").parent.parent.find_all("tr", recursive=False)[1:]
@@ -288,9 +356,9 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
         "glairport": depAirportCode,
         "qty": 1
     }
-    for idx, availableAircraftRow in availableAircraftsDf.iterrows():
+    for _, availableAircraftRow in availableAircraftsDf.iterrows():
         if (availableAircraftRow['avgFreq'] > maxFreq):
-            print("{} exceeded max defined frequency. No flights were added".format(availableAircraftRow['type']))
+            print("\t{} exceeded max defined frequency. No flights were added".format(availableAircraftRow['type']))
             if (aircraftTypeFilter != ''):
                 break
         else:
@@ -339,6 +407,7 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
                     break
 
 def checkSlots(phpSessidReq, autoSlots, airport, airportSlots, flightReqSlots, gatesAvailable):
+    addSlotsReqError = True
     slotsAvailable = True
     try:
         airportSlots = int(airportSlots)
@@ -353,11 +422,12 @@ def checkSlots(phpSessidReq, autoSlots, airport, airportSlots, flightReqSlots, g
                 slotsLeaseData = {
                     "quicklease": "Lease 1 {}".format(airport)
                 }
-                addSlotsReq = requests.post(
-                    "http://ae31.airline-empires.com/rentgate.php",
-                    cookies=phpSessidReq.cookies,
-                    data=slotsLeaseData
-                )
+                while addSlotsReqError:
+                    _, addSlotsReqError, _ = postRequest(
+                        url="http://ae31.airline-empires.com/rentgate.php",
+                        cookies=phpSessidReq.cookies,
+                        data=slotsLeaseData
+                    )
                 slotsAvailable = True
             else:
                 print("No slots available, buy terminal instead")
@@ -366,12 +436,14 @@ def checkSlots(phpSessidReq, autoSlots, airport, airportSlots, flightReqSlots, g
 
 
 def addFlight(phpSessidReq, city1, city2, addFlightsPostData, frequency):
-    addFlightsReq = requests.post(
-        "http://ae31.airline-empires.com/route_details.php?city1={}&city2={}".format(
-            city1,
-            city2
-        ),
-        cookies=phpSessidReq.cookies,
-        data=addFlightsPostData
-    )
+    addFlightsReqError = True
+    while addFlightsReqError:
+        _, addFlightsReqError, _ = postRequest(
+            url="http://ae31.airline-empires.com/route_details.php?city1={}&city2={}".format(
+                city1,
+                city2
+            ),
+            cookies=phpSessidReq.cookies,
+            data=addFlightsPostData
+        )
     print("\tAdded {} flight(s)".format(int(frequency)))

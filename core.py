@@ -3,16 +3,16 @@ from bs4 import BeautifulSoup
 from getpass import getpass
 import pandas as pd
 
+loginError = True
+while loginError:
+    # get password and login
+    username = input("Please enter username: ")
+    password = getpass()
+    loginReq = api.login(username, password)
 
-# get password and login
-username = input("Please enter username: ")
-password = getpass()
-# TODO wrong login
-loginReq = api.login(username, password)
+    # get world to join
+    worldReq, airlineDf, loginError = api.getWorld(loginReq)
 
-
-# get world to join
-worldReq, airlineDf = api.getWorld(loginReq)
 tryServer = True
 while tryServer:
     airlineName = input("Please enter one of above mentioned airline names: ")
@@ -95,4 +95,13 @@ for idx, flight in availableFlightsDf.iterrows():
 # TODO Review existing flights if it achieves demand
 # TODO Fix no available aircraft is wrong
 # TODO Add dataviz for freq by class by plane, to findo ut which plane size is required
+
+# TODO Important
+# Request timeout and retry
+# recursion
+# arg parser
+# TODO Limit amount of new aircrafts to use!
+# minimum frequency
+# List of airports to do (write to csv from route list)
+
 # parse error messages
