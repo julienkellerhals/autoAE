@@ -63,6 +63,8 @@ print(availableFlightsDf.to_string(index=False))
 aircraftType = input("Aircraft type to use: ")
 reducedCapacityFlag = input("Allow flights over intended range? (y/n) ")
 autoSlots = input("Automatically buy slots? (y/n) ")
+autoTerminal = input("Automatically build terminal? (y/n) ")
+autoHub = input("Automatically create hub? (y/n) ")  # TODO
 maxFreq = int(input("Aircraft max frequency: "))
 print("{:20} {:10} {:10} {:10}".format(
         "Destination",
@@ -77,6 +79,7 @@ for idx, flight in availableFlightsDf.iterrows():
         aircraftType,
         reducedCapacityFlag,
         autoSlots,
+        autoTerminal,
         maxFreq,
         flight
     )

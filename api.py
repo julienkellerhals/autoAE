@@ -189,7 +189,7 @@ def getFlights(phpSessidReq, searchParams):
         flightsDf = flightsDf.append(flight, ignore_index=True)
     return listFlightsReq, flightsDf
 
-def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapacityFlag, autoSlots, maxFreq, flight):
+def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapacityFlag, autoSlots, autoTerminal, maxFreq, flight):
     flightDetailsReqError = True
     availableAircraftsReqError = True
     availableAircraftsCols = [
@@ -367,7 +367,18 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
                 addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['avgFreq']
 
                 # check slots
-                slotsAvailable = checkSlots(phpSessidReq, autoSlots, flight['airport'], flight['slots'], availableAircraftRow['avgFreq'], flight['gatesAvailable'])
+                slotsAvailable = checkSlots(
+                    phpSessidReq,
+                    autoSlots,
+                    autoTerminal,
+                    flight['airport'],
+                    flight['slots'],
+                    availableAircraftRow['avgFreq'],
+                    flight['gatesAvailable']
+                )
+
+                # Add hub
+                addHub()
 
                 if slotsAvailable:
                     # add flight
@@ -393,7 +404,18 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
                 if (totPassengerY >= flightDemandSeries['seatReqY']):
 
                     # check slots, see func
-                    slotsAvailable = checkSlots(phpSessidReq, autoSlots, flight['airport'], flight['slots'], availableAircraftRow['avgFreq'], flight['gatesAvailable'])
+                    slotsAvailable = checkSlots(
+                        phpSessidReq,
+                        autoSlots,
+                        autoTerminal,
+                        flight['airport'],
+                        flight['slots'],
+                        availableAircraftRow['avgFreq'],
+                        flight['gatesAvailable']
+                    )
+
+                    # add hub
+                    addHub()
 
                     if slotsAvailable:
                         # add flight
@@ -406,15 +428,20 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
                         )
                     break
 
-def checkSlots(phpSessidReq, autoSlots, airport, airportSlots, flightReqSlots, gatesAvailable):
+def checkSlots(phpSessidReq, autoSlots, autoTerminal, airport, airportSlots, flightReqSlots, gatesAvailable):
     addSlotsReqError = True
+    getTerminalsReqError = True
+    addTerminalReqError = True
     slotsAvailable = True
     try:
         airportSlots = int(airportSlots)
     except TypeError:
         airportSlots = 0
     # check if there is enought slots, else buy some
-    if (airportSlots < flightReqSlots):
+    # +2 is to force to buy new slots / terminal when its almost full
+    # because the termmarket page does not display terminal used at 100%
+    # and passing from correct page would require a lot of request
+    if (airportSlots < (flightReqSlots+2)):
         slotsAvailable = False
         # check if auto slot is on
         if (autoSlots == 'y'):
@@ -430,10 +457,39 @@ def checkSlots(phpSessidReq, autoSlots, airport, airportSlots, flightReqSlots, g
                     )
                 slotsAvailable = True
             else:
-                print("No slots available, buy terminal instead")
+                if (autoTerminal == 'y'):
+                    while getTerminalsReqError:
+                        getTerminalReq, getTerminalsReqError, _ = getRequest(
+                            url="http://ae31.airline-empires.com/termmarket.php",
+                            cookies=phpSessidReq.cookies
+                        )
+                    getTerminalPage = BeautifulSoup(getTerminalReq.text, 'html.parser')
+                    # All terminals except 100% are displayed here
+                    # Reason for +2 before
+                    terminalList = getTerminalPage.find_all("table")[-1:][0]
+                    try:
+                        gateAmount = int(terminalList.find("td", text=airport).next.next.next.next) + 5
+                    except AttributeError as e:
+                        gateAmount = 5
+                    buildTerminalData = {
+                        "qty": gateAmount,
+                        "id": airport,
+                        "price": "0",
+                        "action": "go"
+                    }
+                    while addTerminalReqError:
+                        _, addTerminalReqError, _ = getRequest(
+                            url="http://ae31.airline-empires.com/buildterm.php",
+                            cookies=phpSessidReq.cookies,
+                            params=buildTerminalData
+                        )
+                else:
+                    print("No slots available, buy terminal instead")
                 slotsAvailable = False
     return slotsAvailable
 
+def addHub():
+    print("")
 
 def addFlight(phpSessidReq, city1, city2, addFlightsPostData, frequency):
     addFlightsReqError = True
