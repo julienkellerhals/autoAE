@@ -377,9 +377,6 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
                     flight['gatesAvailable']
                 )
 
-                # Add hub
-                addHub()
-
                 if slotsAvailable:
                     # add flight
                     addFlight(
@@ -413,9 +410,6 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
                         availableAircraftRow['avgFreq'],
                         flight['gatesAvailable']
                     )
-
-                    # add hub
-                    addHub()
 
                     if slotsAvailable:
                         # add flight
@@ -488,8 +482,32 @@ def checkSlots(phpSessidReq, autoSlots, autoTerminal, airport, airportSlots, fli
                 slotsAvailable = False
     return slotsAvailable
 
-def addHub():
-    print("")
+def addHub(phpSessidReq, airport):
+    addTerminalReqError = True
+    addHubReqError = True
+    buildTerminalData = {
+        "qty": "5",
+        "id": airport,
+        "price": "0",
+        "action": "go"
+    }
+    while addTerminalReqError:
+        _, addTerminalReqError, _ = getRequest(
+            url="http://ae31.airline-empires.com/buildterm.php",
+            cookies=phpSessidReq.cookies,
+            params=buildTerminalData
+        )
+    
+    addHubData = {
+        "hub": airport,
+        "hubaction": "Open+Hub"
+    }
+    while addHubReqError:
+        _, addHubReqError, _ = getRequest(
+            url="http://ae31.airline-empires.com/newhub.php",
+            cookies=phpSessidReq.cookies,
+            params=addHubData
+        )
 
 def addFlight(phpSessidReq, city1, city2, addFlightsPostData, frequency):
     addFlightsReqError = True

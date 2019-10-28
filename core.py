@@ -58,14 +58,18 @@ print("Available flights")
 availableFlightsDf = flightsDf[["airport","flightUrl","slots","gatesAvailable"]].loc[flightsDf['flightCreated'] == False]
 print(availableFlightsDf.to_string(index=False))
 
-
 # create routes from airport
 aircraftType = input("Aircraft type to use: ")
 reducedCapacityFlag = input("Allow flights over intended range? (y/n) ")
 autoSlots = input("Automatically buy slots? (y/n) ")
 autoTerminal = input("Automatically build terminal? (y/n) ")
-autoHub = input("Automatically create hub? (y/n) ")  # TODO
+autoHub = input("Automatically create hub? (y/n) ")
 maxFreq = int(input("Aircraft max frequency: "))
+
+# Add hub
+if (autoHub == "y"):
+    api.addHub(phpSessidReq, depAirportCode)
+
 print("{:20} {:10} {:10} {:10}".format(
         "Destination",
         "First",
