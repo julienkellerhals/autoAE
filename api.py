@@ -319,21 +319,24 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
 
     # get prices and ifs
     flightInfo = newFlightsPage.findAll('table')[-1:][0]
+    flightInfoPrices = []
     try:
-        flightInfoPrices = flightInfo.contents[3].findAll('input')
+        for allFlightPrices in flightInfo.contents[3].findAll('input'):
+            flightInfoPrices.append(allFlightPrices.attrs['value'])
     except:
         pass
 
+    flightInfoIFS = []
     try:
-        flightInfoIFS = []
         for allFlightIFS in flightInfo.contents[4].findAll('option'):
             try:
                 allFlightIFS.attrs['selected']
-                flightInfoIFS.append(allFlightIFS)
+                flightInfoIFS.append(allFlightIFS.attrs['value'])
             except KeyError:
                 pass
     except:
-        pass
+        for allFlightIFS in flightInfo.find_all("a"):
+            flightInfoIFS.append(allFlightIFS.attrs['href'].split('id=')[-1:][0])
 
     # find planes to use
     availableAircraftsDf = availableAircraftsDf.sort_values('hours')
@@ -346,12 +349,12 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
         "addflights": 1,
         "addflights_filter_actype": 0,
         "addflights_filter_hours": 1,
-        "price_new_f": flightInfoPrices[0].attrs['value'],
-        "price_new_c": flightInfoPrices[1].attrs['value'],
-        "price_new_y": flightInfoPrices[2].attrs['value'],
-        "ifs_id_f": flightInfoIFS[0].attrs['value'],
-        "ifs_id_c": flightInfoIFS[1].attrs['value'],
-        "ifs_id_y": flightInfoIFS[2].attrs['value'],
+        "price_new_f": flightInfoPrices[0],
+        "price_new_c": flightInfoPrices[1],
+        "price_new_y": flightInfoPrices[2],
+        "ifs_id_f": flightInfoIFS[0],
+        "ifs_id_c": flightInfoIFS[1],
+        "ifs_id_y": flightInfoIFS[2],
         "confirmaddflights": "Add Flights",
         "glairport": depAirportCode,
         "qty": 1
@@ -463,7 +466,7 @@ def checkSlots(phpSessidReq, autoSlots, autoTerminal, airport, airportSlots, fli
                     terminalList = getTerminalPage.find_all("table")[-1:][0]
                     try:
                         gateAmount = int(terminalList.find("td", text=airport).next.next.next.next) + 5
-                    except AttributeError as e:
+                    except AttributeError:
                         gateAmount = 5
                     buildTerminalData = {
                         "qty": gateAmount,
@@ -477,6 +480,7 @@ def checkSlots(phpSessidReq, autoSlots, autoTerminal, airport, airportSlots, fli
                             cookies=phpSessidReq.cookies,
                             params=buildTerminalData
                         )
+                    slotsAvailable = True
                 else:
                     print("No slots available, buy terminal instead")
                 slotsAvailable = False
