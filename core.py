@@ -97,15 +97,12 @@ for idx, flight in availableFlightsDf.iterrows():
 
 
 # TODO
-# TODO when adding flights dont forget to check how many slots are avaiable and order additional or throw error message that the are no gates available
 # TODO Add possibility to review made routes and add missing freq
 # TODO Review existing flights if it achieves demand
 # TODO Fix no available aircraft is wrong
 # TODO Add dataviz for freq by class by plane, to findo ut which plane size is required
 
 # TODO Important
-# Request timeout and retry
-# recursion
 # arg parser
 # TODO Limit amount of new aircrafts to use!
 # minimum frequency
