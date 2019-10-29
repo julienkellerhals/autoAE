@@ -340,7 +340,8 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
 
     # find planes to use
     availableAircraftsDf = availableAircraftsDf.sort_values('hours')
-    print(availableAircraftsDf)
+    if not availableAircraftsDf.empty: 
+        print(availableAircraftsDf)
     totPassengerY = 0
     totFreq = 0
     addFlightsPostData = {

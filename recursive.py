@@ -80,7 +80,7 @@ while len(open("airportList.csv").readlines()) > 1:
         # replace dep with new airport
         searchParams["city"] = airport['airport']
         # get all reachable airports from dep with args
-        print("getting all possible routes ...")
+        print("getting all possible routes from {}".format(airport['airport']))
         listFlightsReq, flightsDf = api.getFlights(phpSessidReq, searchParams)
 
         # Add current destination to done list
@@ -96,33 +96,35 @@ while len(open("airportList.csv").readlines()) > 1:
         depAirportsDf = depAirportsDf[depAirportsDf['airport'] != searchParams["city"]]
         depAirportsDf.to_csv("airportList.csv", index=False)
 
-        print("Available flights")
         availableFlightsDf = flightsDf[["airport","flightUrl","slots","gatesAvailable"]].loc[flightsDf['flightCreated'] == False]
-        print(availableFlightsDf.to_string(index=False))
+        if not availableFlightsDf.empty:
+            print("Available flights")
+            print(availableFlightsDf.to_string(index=False))
 
-        # Add hub
-        if (autoHub == "y"):
-            api.addHub(phpSessidReq, searchParams["city"])
+            # Add hub
+            if (autoHub == "y"):
+                api.addHub(phpSessidReq, searchParams["city"])
 
-        print("{:20} {:10} {:10} {:10}".format(
-                "Destination",
-                "First",
-                "Business",
-                "Economy"
-            ))
-        for idx, flight in availableFlightsDf.iterrows():
-            api.createFlight(
-                phpSessidReq,
-                searchParams["city"],
-                aircraftType,
-                reducedCapacityFlag,
-                autoSlots,
-                autoTerminal,
-                maxFreq,
-                flight
-            )
+            print("{:20} {:10} {:10} {:10}".format(
+                    "Destination",
+                    "First",
+                    "Business",
+                    "Economy"
+                ))
+            for idx, flight in availableFlightsDf.iterrows():
+                api.createFlight(
+                    phpSessidReq,
+                    searchParams["city"],
+                    aircraftType,
+                    reducedCapacityFlag,
+                    autoSlots,
+                    autoTerminal,
+                    maxFreq,
+                    flight
+                )
+        else:
+            print("No new flights available.")
 
 print()
-
 
 # sandbox

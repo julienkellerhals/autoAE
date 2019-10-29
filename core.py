@@ -52,41 +52,45 @@ searchParams = {
 }
 
 # get all reachable airports from dep with args
-print("getting all possible routes ...")
+print("getting all possible routes from {}".format(depAirportCode))
 listFlightsReq, flightsDf = api.getFlights(phpSessidReq, searchParams)
-print("Available flights")
 availableFlightsDf = flightsDf[["airport","flightUrl","slots","gatesAvailable"]].loc[flightsDf['flightCreated'] == False]
-print(availableFlightsDf.to_string(index=False))
+if not availableFlightsDf.empty:
+    print("Available flights")
+    print(availableFlightsDf.to_string(index=False))
 
-# create routes from airport
-aircraftType = input("Aircraft type to use: ")
-reducedCapacityFlag = input("Allow flights over intended range? (y/n) ")
-autoSlots = input("Automatically buy slots? (y/n) ")
-autoTerminal = input("Automatically build terminal? (y/n) ")
-autoHub = input("Automatically create hub? (y/n) ")
-maxFreq = int(input("Aircraft max frequency: "))
+    # create routes from airport
+    aircraftType = input("Aircraft type to use: ")
+    reducedCapacityFlag = input("Allow flights over intended range? (y/n) ")
+    autoSlots = input("Automatically buy slots? (y/n) ")
+    autoTerminal = input("Automatically build terminal? (y/n) ")
+    autoHub = input("Automatically create hub? (y/n) ")
+    maxFreq = int(input("Aircraft max frequency: "))
 
-# Add hub
-if (autoHub == "y"):
-    api.addHub(phpSessidReq, depAirportCode)
+    # Add hub
+    if (autoHub == "y"):
+        api.addHub(phpSessidReq, depAirportCode)
 
-print("{:20} {:10} {:10} {:10}".format(
-        "Destination",
-        "First",
-        "Business",
-        "Economy"
+    print("{:20} {:10} {:10} {:10}".format(
+            "Destination",
+            "First",
+            "Business",
+            "Economy"
     ))
-for idx, flight in availableFlightsDf.iterrows():
-    api.createFlight(
-        phpSessidReq,
-        depAirportCode,
-        aircraftType,
-        reducedCapacityFlag,
-        autoSlots,
-        autoTerminal,
-        maxFreq,
-        flight
-    )
+    for idx, flight in availableFlightsDf.iterrows():
+        api.createFlight(
+            phpSessidReq,
+            depAirportCode,
+            aircraftType,
+            reducedCapacityFlag,
+            autoSlots,
+            autoTerminal,
+            maxFreq,
+            flight
+        )
+else:
+    print("No new flights available.")
+
 
 
 # sandbox
