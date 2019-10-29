@@ -35,7 +35,7 @@ phpSessidReq = api.enterWorld(worldReq, gameServer)
 
 
 # get start route params
-recursion = input("Continue previous recursion? (y/n)")
+recursion = input("Continue previous recursion? (y/n) ")
 flightCountry = ''
 flightRegion = ''
 requiredRunway = input("Minimum runway length: ")
@@ -90,8 +90,8 @@ while len(open("airportList.csv").readlines()) > 1:
 
         # Add all new destination to airport list
         depAirportsDf = depAirportsDf.append(flightsDf[["airport"]])
-        depAirportsDf = depAirportsDf.drop_duplicates()
-        depAirportsDf = depAirportsDf.append(doneAirportDf)
+        depAirportsDf = depAirportsDf.drop_duplicates(keep="first")
+        depAirportsDf = pd.concat([depAirportsDf, doneAirportDf])
         depAirportsDf = depAirportsDf.drop_duplicates(keep=False)
         depAirportsDf = depAirportsDf[depAirportsDf['airport'] != searchParams["city"]]
         depAirportsDf.to_csv("airportList.csv", index=False)
