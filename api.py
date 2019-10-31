@@ -461,10 +461,13 @@ def checkOriSlots(phpSessidReq, autoSlots, autoTerminal, airport):
             cookies=phpSessidReq.cookies
         )
     gateUtilisationPage = BeautifulSoup(gateUtilisationReq.text, 'html.parser')
-    gateUtilisation = int(gateUtilisationPage.find_all('a', text=airport)[-1:][0].parent.parent.parent.contents[-1:][0].text.split('%')[0])
+    # TODO implement part when there is no bought slot from this airport
+    gateRow = gateUtilisationPage.find_all('a', text=airport)[-1:][0].parent.parent.parent
+    gateAmount = int(gateRow.contents[5].text) + 5
+    gateUtilisation = int(gateRow.contents[-1:][0].text.split('%')[0])
 
     # Terminal buying threshold
-    if (gateUtilisation >= 90):
+    if (gateUtilisation >= 80):
         slotsAvailable = False
         if (autoTerminal == 'y'):
             while getTerminalsReqError:
@@ -473,11 +476,6 @@ def checkOriSlots(phpSessidReq, autoSlots, autoTerminal, airport):
                     cookies=phpSessidReq.cookies
                 )
             getTerminalPage = BeautifulSoup(getTerminalReq.text, 'html.parser')
-            terminalList = getTerminalPage.find_all("table")[-1:][0]
-            try:
-                gateAmount = int(terminalList.find("td", text=airport).next.next.next.next) + 5
-            except AttributeError:
-                gateAmount = 5
             buildTerminalData = {
                 "qty": gateAmount,
                 "id": airport,
@@ -531,11 +529,9 @@ def checkTgtSlots(phpSessidReq, autoSlots, autoTerminal, airport, airportSlots, 
                             cookies=phpSessidReq.cookies
                         )
                     getTerminalPage = BeautifulSoup(getTerminalReq.text, 'html.parser')
-                    # All terminals except 100% are displayed here
-                    # Reason for +2 before
-                    terminalList = getTerminalPage.find_all("table")[-1:][0]
+                    # Not safe, redo
                     try:
-                        gateAmount = int(terminalList.find("td", text=airport).next.next.next.next) + 5
+                        gateAmount = int(getTerminalPage.find(text=airport).next.next.next) + 5
                     except AttributeError:
                         gateAmount = 5
                     buildTerminalData = {
