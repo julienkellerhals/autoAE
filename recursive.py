@@ -51,14 +51,16 @@ autoTerminal = input("Automatically build terminal? (y/n) ")
 autoHub = input("Automatically create hub? (y/n) ")
 maxFreq = int(input("Aircraft max frequency: "))
 
+airportListCsv = "airportList_{}.csv".format(aircraftType)
+doneAirportListCsv = "doneAirportList__{}.csv".format(aircraftType)
 if (recursion == 'n'):
-    f = open("airportList.csv", "w")
+    f = open(airportListCsv, "w")
     f.write("airport")
     f.write("\n")
     f.write(depAirportCode)
     f.close()
 
-    f = open("doneAirportList.csv", "w")
+    f = open(doneAirportListCsv, "w")
     f.write("airport")
     f.close()
 
@@ -71,10 +73,10 @@ searchParams = {
     "city": depAirportCode
 }
 
-while len(open("airportList.csv").readlines()) > 1:
+while len(open(airportListCsv).readlines()) > 1:
     # Read airport list
-    doneAirportDf = pd.read_csv("doneAirportList.csv")
-    depAirportsDf = pd.read_csv("airportList.csv")
+    depAirportsDf = pd.read_csv(airportListCsv)
+    doneAirportDf = pd.read_csv(doneAirportListCsv)
 
     for _, airport in depAirportsDf.iterrows():
         # replace dep with new airport
@@ -86,7 +88,7 @@ while len(open("airportList.csv").readlines()) > 1:
         # Add current destination to done list
         doneAirportSeries = pd.Series(index=["airport"], data=searchParams["city"])
         doneAirportDf = doneAirportDf.append(doneAirportSeries, ignore_index=True)
-        doneAirportDf.to_csv("doneAirportList.csv", index=False)
+        doneAirportDf.to_csv(doneAirportListCsv, index=False)
 
         # Add all new destination to airport list
         depAirportsDf = depAirportsDf.append(flightsDf[["airport"]])
@@ -94,7 +96,7 @@ while len(open("airportList.csv").readlines()) > 1:
         depAirportsDf = pd.concat([depAirportsDf, doneAirportDf])
         depAirportsDf = depAirportsDf.drop_duplicates(keep=False)
         depAirportsDf = depAirportsDf[depAirportsDf['airport'] != searchParams["city"]]
-        depAirportsDf.to_csv("airportList.csv", index=False)
+        depAirportsDf.to_csv(airportListCsv, index=False)
 
         availableFlightsDf = flightsDf[["airport","flightUrl","slots","gatesAvailable"]].loc[flightsDf['flightCreated'] == False]
         if not availableFlightsDf.empty:
