@@ -96,7 +96,7 @@ else:
 # sandbox
 # soup = BeautifulSoup(worldPage.text,'html.parser')
 # with open("output.html", "w", encoding='utf-8') as file:
-#     file.write(str(flightListPage))
+#     file.write(str(newFlightsPage))
 
 
 
@@ -109,7 +109,7 @@ else:
 # TODO Important
 # arg parser
 # TODO Limit amount of new aircrafts to use!
-# minimum frequency
-# List of airports to do (write to csv from route list)
+# TODO minimum frequency
+# TODO aircraft list
 
 # parse error messages

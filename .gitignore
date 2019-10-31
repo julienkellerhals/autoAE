@@ -4,3 +4,6 @@ cred.py
 /__pycache__/
 /airportList.csv
 /doneAirportList.csv
+/airportList_*.csv
+/doneAirportList_*.csv
+/*json
