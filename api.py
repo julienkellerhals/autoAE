@@ -29,6 +29,9 @@ def getRequest(url, cookies=None, params=None):
     except requests.exceptions.HTTPError as e:
         errorCode = r.status_code
         print(e)
+    except requests.exceptions.ChunkedEncodingError as e:
+        print("connection error")
+        print(e)
     return r, reqError, errorCode
 
 def postRequest(url, cookies, data):
@@ -52,6 +55,9 @@ def postRequest(url, cookies, data):
         print(e)
     except requests.exceptions.HTTPError as e:
         errorCode = r.status_code
+        print(e)
+    except requests.exceptions.ChunkedEncodingError as e:
+        print("connection error")
         print(e)
     return r, reqError, errorCode
 
@@ -189,7 +195,7 @@ def getFlights(phpSessidReq, searchParams):
         flightsDf = flightsDf.append(flight, ignore_index=True)
     return listFlightsReq, flightsDf
 
-def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapacityFlag, autoSlots, autoTerminal, maxFreq, flight):
+def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapacityFlag, autoSlots, autoTerminal, minFreq, maxFreq, flight):
     flightDetailsReqError = True
     availableAircraftsReqError = True
     availableAircraftsCols = [
@@ -361,11 +367,23 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
         "qty": 1
     }
     for _, availableAircraftRow in availableAircraftsDf.iterrows():
-        if (availableAircraftRow['avgFreq'] > maxFreq):
-            print("\t{} exceeded max defined frequency. No flights were added".format(availableAircraftRow['type']))
-            if (aircraftTypeFilter != ''):
-                break
-        else:
+        minFreqCheck = True
+        maxFreqCheck = True
+
+        if (minFreq != ''):
+            if (availableAircraftRow['avgFreq'] < int(minFreq)):
+                minFreqCheck = False
+                print("\t{} exceeded min defined frequency. No flights were added".format(availableAircraftRow['type']))
+                if (aircraftTypeFilter != ''):
+                    break
+        if (maxFreq != ''):
+            if (availableAircraftRow['avgFreq'] > int(maxFreq)):
+                maxFreqCheck = False
+                print("\t{} exceeded max defined frequency. No flights were added".format(availableAircraftRow['type']))
+                if (aircraftTypeFilter != ''):
+                    break
+        
+        if minFreqCheck and maxFreqCheck:
             if (availableAircraftRow['frequency'] >= availableAircraftRow['avgFreq']):
                 # case when required frequency less than available
                 addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['avgFreq']

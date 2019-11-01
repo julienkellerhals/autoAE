@@ -49,7 +49,8 @@ reducedCapacityFlag = input("Allow flights over intended range? (y/n) ")
 autoSlots = input("Automatically buy slots? (y/n) ")
 autoTerminal = input("Automatically build terminal? (y/n) ") 
 autoHub = input("Automatically create hub? (y/n) ")
-maxFreq = int(input("Aircraft max frequency: "))
+minFreq = input("Aircraft min frequency: ")
+maxFreq = input("Aircraft max frequency: ")
 
 airportListCsv = "airportList_{}.csv".format(aircraftType)
 doneAirportListCsv = "doneAirportList__{}.csv".format(aircraftType)
@@ -121,6 +122,7 @@ while len(open(airportListCsv).readlines()) > 1:
                     reducedCapacityFlag,
                     autoSlots,
                     autoTerminal,
+                    minFreq,
                     maxFreq,
                     flight
                 )

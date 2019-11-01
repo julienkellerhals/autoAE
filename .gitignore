@@ -7,3 +7,4 @@ cred.py
 /airportList_*.csv
 /doneAirportList_*.csv
 /*json
+/notes.txt

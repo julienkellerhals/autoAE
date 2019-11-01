@@ -65,7 +65,8 @@ if not availableFlightsDf.empty:
     autoSlots = input("Automatically buy slots? (y/n) ")
     autoTerminal = input("Automatically build terminal? (y/n) ")
     autoHub = input("Automatically create hub? (y/n) ")
-    maxFreq = int(input("Aircraft max frequency: "))
+    minFreq = input("Aircraft min frequency: ")
+    maxFreq = input("Aircraft max frequency: ")
 
     # Add hub
     if (autoHub == "y"):
@@ -85,6 +86,7 @@ if not availableFlightsDf.empty:
             reducedCapacityFlag,
             autoSlots,
             autoTerminal,
+            minFreq,
             maxFreq,
             flight
         )
@@ -96,7 +98,7 @@ else:
 # sandbox
 # soup = BeautifulSoup(worldPage.text,'html.parser')
 # with open("output.html", "w", encoding='utf-8') as file:
-#     file.write(str(newFlightsPage))
+#     file.write(str(routeDetailsPage))
 
 
 
@@ -109,7 +111,6 @@ else:
 # TODO Important
 # arg parser
 # TODO Limit amount of new aircrafts to use!
-# TODO minimum frequency
 # TODO aircraft list
 
 # parse error messages
