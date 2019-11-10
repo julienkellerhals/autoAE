@@ -8,3 +8,5 @@ cred.py
 /doneAirportList_*.csv
 /*json
 /notes.txt
+/flightRequest.csv
+/workspace.code-workspace
