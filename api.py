@@ -172,31 +172,59 @@ def getFlights(phpSessidReq, searchParams):
     flightList = flightListTable.find_all("tr")[1:]
     for flightRow in flightList:
         airport = flightRow.find_all("td")[0].text
-        flightUrl = flightRow.find_all("td")[5].find("a").attrs['href']
-        if (flightRow.find_all("td")[5].find("div") == None):
-            flightCreated = False
-        else:
-            flightCreated  = True    
         try:
-            slots = re.search(slotsRegex, flightRow.find_all("td")[6].text).group(1)
-        except AttributeError:
-            slots = None
-        if (flightRow.find_all("td")[10].find("input") == None):
-            gatesAvailable = False
+            flightUrl = flightRow.find_all("td")[5].find("a").attrs['href']
+        except AttributeError as e:
+            print("Flight from {} to {} cannot be researched".format(searchParams["city"], airport))
+            print(e)
         else:
-            gatesAvailable = True
-        flight = pd.Series([
-            airport,
-            flightUrl,
-            flightCreated,
-            slots,
-            gatesAvailable
-        ], index=flightsCols)
-        flightsDf = flightsDf.append(flight, ignore_index=True)
+            if (flightRow.find_all("td")[5].find("div") == None):
+                flightCreated = False
+            else:
+                flightCreated  = True    
+            try:
+                slots = re.search(slotsRegex, flightRow.find_all("td")[6].text).group(1)
+            except AttributeError:
+                slots = None
+            if (flightRow.find_all("td")[10].find("input") == None):
+                gatesAvailable = False
+            else:
+                gatesAvailable = True
+            flight = pd.Series([
+                airport,
+                flightUrl,
+                flightCreated,
+                slots,
+                gatesAvailable
+            ], index=flightsCols)
+            flightsDf = flightsDf.append(flight, ignore_index=True)
     return listFlightsReq, flightsDf
 
+def getFlightDemand(phpSessidReq, flight):
+    if (re.match(r"\w{3}",flight['airport']) != None):
+        flightDetailsReqError = True
+        while flightDetailsReqError:
+            # flight details
+            flightDetailsReq, flightDetailsReqError, _ = getRequest(
+                url="http://ae31.airline-empires.com/" + flight['flightUrl'],
+                cookies=phpSessidReq.cookies
+            )
+        routeDetailsPage = BeautifulSoup(flightDetailsReq.text, 'html.parser')
+        highChartsScript = routeDetailsPage.findAll('script')[8:9][0].text
+        rawData = re.findall(r"data: \[\d*,\d*,\d*\]", highChartsScript)[0]
+        flightDemand = [int(x) for x in re.findall(r"\d*,\d*,\d*", rawData)[0].split(',')]
+        print()
+        print("{:20} {:10} {:10} {:10}".format(
+            flight['airport'],
+            flightDemand[0],
+            flightDemand[1],
+            flightDemand[2])
+        )
+    else:
+        flightDemand = [0,0,0]
+    return flightDemand
+
 def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapacityFlag, autoSlots, autoTerminal, minFreq, maxFreq, flight):
-    flightDetailsReqError = True
     availableAircraftsReqError = True
     availableAircraftsCols = [
         "frequency",
@@ -210,24 +238,7 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
     ]
     availableAircraftsDf = pd.DataFrame(columns=availableAircraftsCols)
 
-    while flightDetailsReqError:
-        # flight details
-        flightDetailsReq, flightDetailsReqError, _ = getRequest(
-            url="http://ae31.airline-empires.com/" + flight['flightUrl'],
-            cookies=phpSessidReq.cookies
-        )
-    routeDetailsPage = BeautifulSoup(flightDetailsReq.text, 'html.parser')
-    highChartsScript = routeDetailsPage.findAll('script')[8:9][0].text
-    rawData = re.findall(r"data: \[\d*,\d*,\d*\]", highChartsScript)[0]
-    flightDemand = [int(x) for x in re.findall(r"\d*,\d*,\d*", rawData)[0].split(',')]
-    [ int(x) for x in "40 1".split(" ") ]
-    print()
-    print("{:20} {:10} {:10} {:10}".format(
-        flight['airport'],
-        flightDemand[0],
-        flightDemand[1],
-        flightDemand[2])
-    )
+    flightDemand = getFlightDemand(phpSessidReq, flight)
 
     # aircraft details
     routeAircraftPostData = {
