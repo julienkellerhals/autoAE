@@ -16,7 +16,7 @@ def getRequest(url, cookies=None, params=None):
             url=url,
             cookies=cookies,
             params=params,
-            timeout=10
+            timeout=20
         )
         r.raise_for_status()
         reqError = False
@@ -43,7 +43,7 @@ def postRequest(url, cookies, data):
             url,
             cookies=cookies,
             data=data,
-            timeout=10
+            timeout=20
         )
         r.raise_for_status()
         reqError = False
@@ -335,112 +335,73 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
     availableAircraftsDf['avgFreq'] = availableAircraftsDf['avgFreq'].apply(np.ceil)
 
     # get prices and ifs
-    flightInfo = newFlightsPage.findAll('table')[-1:][0]
-    flightInfoPrices = []
-    try:
-        for allFlightPrices in flightInfo.contents[3].findAll('input'):
-            flightInfoPrices.append(allFlightPrices.attrs['value'])
-    except:
-        pass
+    flightInfo = newFlightsPage.find('div', 'prices')
+    if flightInfo is not None:
+        flightInfo = flightInfo.contents[0]
+        flightInfoPrices = []
+        try:
+            for allFlightPrices in flightInfo.contents[3].findAll('input'):
+                flightInfoPrices.append(allFlightPrices.attrs['value'])
+        except:
+            pass
 
-    flightInfoIFS = []
-    try:
-        for allFlightIFS in flightInfo.contents[4].findAll('option'):
-            try:
-                allFlightIFS.attrs['selected']
-                flightInfoIFS.append(allFlightIFS.attrs['value'])
-            except KeyError:
-                pass
-    except:
-        for allFlightIFS in flightInfo.find_all("a"):
-            flightInfoIFS.append(allFlightIFS.attrs['href'].split('id=')[-1:][0])
+        flightInfoIFS = []
+        try:
+            for allFlightIFS in flightInfo.contents[4].findAll('option'):
+                try:
+                    allFlightIFS.attrs['selected']
+                    flightInfoIFS.append(allFlightIFS.attrs['value'])
+                except KeyError:
+                    pass
+        except:
+            for allFlightIFS in flightInfo.find_all("a"):
+                flightInfoIFS.append(allFlightIFS.attrs['href'].split('id=')[-1:][0])
 
-    # find planes to use
-    availableAircraftsDf = availableAircraftsDf.sort_values('hours')
-    if not availableAircraftsDf.empty: 
-        print(availableAircraftsDf)
-    totPassengerY = 0
-    totFreq = 0
-    addFlightsPostData = {
-        "city1": depAirportCode,
-        "city2": flight['airport'],
-        "addflights": 1,
-        "addflights_filter_actype": 0,
-        "addflights_filter_hours": 1,
-        "price_new_f": flightInfoPrices[0],
-        "price_new_c": flightInfoPrices[1],
-        "price_new_y": flightInfoPrices[2],
-        "ifs_id_f": flightInfoIFS[0],
-        "ifs_id_c": flightInfoIFS[1],
-        "ifs_id_y": flightInfoIFS[2],
-        "confirmaddflights": "Add Flights",
-        "glairport": depAirportCode,
-        "qty": 1
-    }
-    for _, availableAircraftRow in availableAircraftsDf.iterrows():
-        minFreqCheck = True
-        maxFreqCheck = True
+        # find planes to use
+        availableAircraftsDf = availableAircraftsDf.sort_values('hours')
+        if not availableAircraftsDf.empty: 
+            print(availableAircraftsDf)
+        totPassengerY = 0
+        totFreq = 0
+        addFlightsPostData = {
+            "city1": depAirportCode,
+            "city2": flight['airport'],
+            "addflights": 1,
+            "addflights_filter_actype": 0,
+            "addflights_filter_hours": 1,
+            "price_new_f": flightInfoPrices[0],
+            "price_new_c": flightInfoPrices[1],
+            "price_new_y": flightInfoPrices[2],
+            "ifs_id_f": flightInfoIFS[0],
+            "ifs_id_c": flightInfoIFS[1],
+            "ifs_id_y": flightInfoIFS[2],
+            "confirmaddflights": "Add Flights",
+            "glairport": depAirportCode,
+            "qty": 1
+        }
+        for _, availableAircraftRow in availableAircraftsDf.iterrows():
+            minFreqCheck = True
+            maxFreqCheck = True
 
-        if (minFreq != ''):
-            if (availableAircraftRow['avgFreq'] < int(minFreq)):
-                minFreqCheck = False
-                print("\t{} exceeded min defined frequency. No flights were added".format(availableAircraftRow['type']))
-                if (aircraftTypeFilter != ''):
-                    break
-        if (maxFreq != ''):
-            if (availableAircraftRow['avgFreq'] > int(maxFreq)):
-                maxFreqCheck = False
-                print("\t{} exceeded max defined frequency. No flights were added".format(availableAircraftRow['type']))
-                if (aircraftTypeFilter != ''):
-                    break
-        
-        if minFreqCheck and maxFreqCheck:
-            if (availableAircraftRow['frequency'] >= availableAircraftRow['avgFreq']):
-                # case when required frequency less than available
-                addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['avgFreq']
+            if (minFreq != ''):
+                if (availableAircraftRow['avgFreq'] < int(minFreq)):
+                    minFreqCheck = False
+                    print("\t{} exceeded min defined frequency. No flights were added".format(availableAircraftRow['type']))
+                    if (aircraftTypeFilter != ''):
+                        break
+            if (maxFreq != ''):
+                if (availableAircraftRow['avgFreq'] > int(maxFreq)):
+                    maxFreqCheck = False
+                    print("\t{} exceeded max defined frequency. No flights were added".format(availableAircraftRow['type']))
+                    if (aircraftTypeFilter != ''):
+                        break
+            
+            if minFreqCheck and maxFreqCheck:
+                if (availableAircraftRow['frequency'] >= availableAircraftRow['avgFreq']):
+                    # case when required frequency less than available
+                    addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['avgFreq']
 
-                # check slots
-                oriSlotsAvailable = checkOriSlots(
-                    phpSessidReq,
-                    autoSlots,
-                    autoTerminal,
-                    depAirportCode
-                )
-
-                tgtSlotsAvailable = checkTgtSlots(
-                    phpSessidReq,
-                    autoSlots,
-                    autoTerminal,
-                    flight['airport'],
-                    flight['slots'],
-                    availableAircraftRow['avgFreq'],
-                    flight['gatesAvailable']
-                )
-
-                if oriSlotsAvailable & tgtSlotsAvailable:
-                    # add flight
-                    addFlight(
-                        phpSessidReq,
-                        routeAircraftPostData['city1'],
-                        routeAircraftPostData['city2'],
-                        addFlightsPostData,
-                        availableAircraftRow['avgFreq']
-                    )
-                break
-            else:
-                if ((totFreq + availableAircraftRow['frequency']) > availableAircraftRow['avgFreq']):
-                    # case when enought flights were added
-                    addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = (availableAircraftRow['avgFreq'] - totFreq)
-                    totFreq += (availableAircraftRow['avgFreq'] - totFreq)
-                else:
-                    # continue adding flights
-                    addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['frequency']
-                    totFreq += availableAircraftRow['frequency']
-                totPassengerY += (availableAircraftRow['seatY'] * availableAircraftRow['frequency'])
-                # check if the demand is meat (only checks Economy)
-                if (totPassengerY >= flightDemandSeries['seatReqY']):
-
-                    # check slots, see func
+                    # check slots
                     oriSlotsAvailable = checkOriSlots(
                         phpSessidReq,
                         autoSlots,
@@ -465,9 +426,52 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
                             routeAircraftPostData['city1'],
                             routeAircraftPostData['city2'],
                             addFlightsPostData,
-                            totFreq
+                            availableAircraftRow['avgFreq']
                         )
                     break
+                else:
+                    if ((totFreq + availableAircraftRow['frequency']) > availableAircraftRow['avgFreq']):
+                        # case when enought flights were added
+                        addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = (availableAircraftRow['avgFreq'] - totFreq)
+                        totFreq += (availableAircraftRow['avgFreq'] - totFreq)
+                    else:
+                        # continue adding flights
+                        addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['frequency']
+                        totFreq += availableAircraftRow['frequency']
+                    totPassengerY += (availableAircraftRow['seatY'] * availableAircraftRow['frequency'])
+                    # check if the demand is meat (only checks Economy)
+                    if (totPassengerY >= flightDemandSeries['seatReqY']):
+
+                        # check slots, see func
+                        oriSlotsAvailable = checkOriSlots(
+                            phpSessidReq,
+                            autoSlots,
+                            autoTerminal,
+                            depAirportCode
+                        )
+
+                        tgtSlotsAvailable = checkTgtSlots(
+                            phpSessidReq,
+                            autoSlots,
+                            autoTerminal,
+                            flight['airport'],
+                            flight['slots'],
+                            availableAircraftRow['avgFreq'],
+                            flight['gatesAvailable']
+                        )
+
+                        if oriSlotsAvailable & tgtSlotsAvailable:
+                            # add flight
+                            addFlight(
+                                phpSessidReq,
+                                routeAircraftPostData['city1'],
+                                routeAircraftPostData['city2'],
+                                addFlightsPostData,
+                                totFreq
+                            )
+                        break
+    else:
+        print("Error in page (no flights dispayed / available)")
 
 def checkOriSlots(phpSessidReq, autoSlots, autoTerminal, airport):
     mainPageReqError = True
