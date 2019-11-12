@@ -42,3 +42,19 @@ plt.legend()
 plt.show()
 
 print()
+
+# formula to find first rate
+x = [1,2,3,4,5,6,7,8,9,10]
+y = [217,215,212,210,207,205,202,200,197,195]
+coef = np.polyfit(x,y,1)
+# 1 first = 2.48 eco
+
+
+# formula to find business rate
+x = [1,2,3,4,5,6,7,8,9,10]
+y = [218,216,215,213,212,210,208,207,205,204]
+coef = np.polyfit(x,y,1)
+# 1 business = 1.57 eco
+
+# first avg dem 2, coef 50 (100/2)
+# business avg dem 12, coef 8.3 (100/12)
