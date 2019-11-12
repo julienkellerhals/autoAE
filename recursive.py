@@ -1,13 +1,16 @@
+import AEArgParser
+import userInput
 import api
 from bs4 import BeautifulSoup
-from getpass import getpass
 import pandas as pd
+
+args = AEArgParser.createArgParser()
 
 loginError = True
 while loginError:
     # get password and login
-    username = input("Please enter username: ")
-    password = getpass()
+    username = userInput.setVar(args, "username", "Please enter username: ")
+    password = userInput.setVar(args, "password")
     loginReq = api.login(username, password)
 
     # get world to join
@@ -15,7 +18,7 @@ while loginError:
 
 tryServer = True
 while tryServer:
-    airlineName = input("Please enter one of above mentioned airline names: ")
+    airlineName = userInput.setVar(args, "airline", "Please enter one of above mentioned airline names: ")
     # TODO Problem if airline has the same name on different server
     worldId = airlineDf[['worldId']].loc[airlineDf['name'] == airlineName].to_string(header=False, index=False).strip()
     userId = airlineDf[['userId']].loc[airlineDf['name'] == airlineName].to_string(header=False, index=False).strip()
@@ -35,22 +38,22 @@ phpSessidReq = api.enterWorld(worldReq, gameServer)
 
 
 # get start route params
-recursion = input("Continue previous recursion? (y/n) ")
+recursion = userInput.setVar(args, "recursion", "Continue previous recursion? (y/n) ")
 flightCountry = ''
 flightRegion = ''
-requiredRunway = input("Minimum runway length: ")
+requiredRunway = userInput.setVar(args, "reqRW", "Minimum runway length: ")
 rangeMin = ''
-rangeMax = input("Flight maximum range: ")
-depAirportCode = input("Departure airport code: ")
+rangeMax = userInput.setVar(args, "rgMax", "Flight maximum range: ")
+depAirportCode = userInput.setVar(args, "depAirportCode", "Departure airport code: ")
 
 # get recursion params
-aircraftType = input("Aircraft type to use: ")
-reducedCapacityFlag = input("Allow flights over intended range? (y/n) ")
-autoSlots = input("Automatically buy slots? (y/n) ")
-autoTerminal = input("Automatically build terminal? (y/n) ") 
-autoHub = input("Automatically create hub? (y/n) ")
-minFreq = input("Aircraft min frequency: ")
-maxFreq = input("Aircraft max frequency: ")
+aircraftType = userInput.setVar(args, "aircraftType", "Aircraft type to use: ")
+reducedCapacityFlag = userInput.setVar(args, "reducedCapacity", "Allow flights over intended range? (y/n) ")
+autoSlots = userInput.setVar(args, "autoSlots", "Automatically buy slots? (y/n) ")
+autoTerminal = userInput.setVar(args, "autoTerminal", "Automatically build terminal? (y/n) ")
+autoHub = userInput.setVar(args, "autoHub", "Automatically create hub? (y/n) ")
+minFreq = userInput.setVar(args, "minFreq", "Aircraft min frequency: ")
+maxFreq = userInput.setVar(args, "maxFreq", "Aircraft max frequency: ")
 
 airportListCsv = "airportList_{}.csv".format(aircraftType)
 doneAirportListCsv = "doneAirportList__{}.csv".format(aircraftType)
