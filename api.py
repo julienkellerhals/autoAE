@@ -502,7 +502,7 @@ def checkOriSlots(phpSessidReq, autoSlots, autoTerminal, airport):
     # Terminal buying threshold
     if (gateUtilisation >= 80):
         slotsAvailable = False
-        if (autoTerminal == 'y'):
+        if (autoTerminal == 'y' or autoTerminal == True):
             while getTerminalsReqError:
                 getTerminalReq, getTerminalsReqError, _ = getRequest(
                     url="http://ae31.airline-empires.com/termmarket.php",
@@ -542,7 +542,7 @@ def checkTgtSlots(phpSessidReq, autoSlots, autoTerminal, airport, airportSlots, 
     if (airportSlots < (flightReqSlots+2)):
         slotsAvailable = False
         # check if auto slot is on
-        if (autoSlots == 'y'):
+        if (autoSlots == 'y' or autoSlots == True):
             if gatesAvailable:
                 slotsLeaseData = {
                     "quicklease": "Lease 1 {}".format(airport)
@@ -555,7 +555,7 @@ def checkTgtSlots(phpSessidReq, autoSlots, autoTerminal, airport, airportSlots, 
                     )
                 slotsAvailable = True
             else:
-                if (autoTerminal == 'y'):
+                if (autoTerminal == 'y' or autoTerminal == True):
                     while getTerminalsReqError:
                         getTerminalReq, getTerminalsReqError, _ = getRequest(
                             url="http://ae31.airline-empires.com/termmarket.php",
