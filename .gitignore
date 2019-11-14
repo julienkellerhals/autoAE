@@ -2,11 +2,10 @@
 output.html
 cred.py
 /__pycache__/
-/airportList.csv
-/doneAirportList.csv
-/airportList_*.csv
-/doneAirportList_*.csv
+airportList/airportList_*.csv
+doneAirportList/doneAirportList_*.csv
 /*json
 /notes.txt
 /flightRequest.csv
 /workspace.code-workspace
+/phpSessionReq.pickle
