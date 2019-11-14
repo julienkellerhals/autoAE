@@ -1,41 +1,24 @@
 import AEArgParser
 import userInput
 import api
+import pickle
 from bs4 import BeautifulSoup
 import pandas as pd
 
 args = AEArgParser.createArgParser()
 
-loginError = True
-while loginError:
-    # get password and login
-    username = userInput.setVar(args, "username", "Please enter username: ")
-    password = userInput.setVar(args, "password")
-    loginReq = api.login(username, password)
+try:
+    varValue = vars(args)['pickled']
+except KeyError:
+    varValue = None
 
-    # get world to join
-    worldReq, airlineDf, loginError = api.getWorld(loginReq)
-
-tryServer = True
-while tryServer:
-    airlineName = userInput.setVar(args, "airline", "Please enter one of above mentioned airline names: ")
-    # TODO Problem if airline has the same name on different server
-    worldId = airlineDf[['worldId']].loc[airlineDf['name'] == airlineName].to_string(header=False, index=False).strip()
-    userId = airlineDf[['userId']].loc[airlineDf['name'] == airlineName].to_string(header=False, index=False).strip()
-    if ('Empty DataFrame' not in worldId and 'Empty DataFrame' not in userId):
-        tryServer = False
-    else:
-        print("Airline does not exist, retry.")
-gameServer = {
-    "world": worldId,
-    "userid": userId
-}
-
-
-# enter world
-print("entering world {} with {}".format(worldId, airlineName))
-phpSessidReq = api.enterWorld(worldReq, gameServer)
-
+if (varValue == None):
+    forumSessidReq = api.getPageSession()
+    worldReq, airlineDf = api.doLogin(args, forumSessidReq)
+    phpSessidReq = api.doEnterWorld(args, airlineDf, worldReq)
+else:
+    f = open(varValue, 'rb')
+    phpSessidReq = pickle.loads(f.read())
 
 # get routes from departure airport
 flightCountry = userInput.setVar(args, "country", "Flight country: ")
@@ -72,7 +55,7 @@ if not availableFlightsDf.empty:
     maxFreq = userInput.setVar(args, "maxFreq", "Aircraft max frequency: ")
 
     # Add hub
-    if (autoHub == "y" or autoHub == True):
+    if (autoHub == "y"):
         api.addHub(phpSessidReq, depAirportCode)
 
     print("{:20} {:10} {:10} {:10}".format(

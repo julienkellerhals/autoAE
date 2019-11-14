@@ -1,41 +1,25 @@
 import AEArgParser
 import userInput
 import api
+import pickle
+import os
 from bs4 import BeautifulSoup
 import pandas as pd
 
 args = AEArgParser.createArgParser()
 
-loginError = True
-while loginError:
-    # get password and login
-    username = userInput.setVar(args, "username", "Please enter username: ")
-    password = userInput.setVar(args, "password")
-    loginReq = api.login(username, password)
+try:
+    varValue = vars(args)['pickled']
+except KeyError:
+    varValue = None
 
-    # get world to join
-    worldReq, airlineDf, loginError = api.getWorld(loginReq)
-
-tryServer = True
-while tryServer:
-    airlineName = userInput.setVar(args, "airline", "Please enter one of above mentioned airline names: ")
-    # TODO Problem if airline has the same name on different server
-    worldId = airlineDf[['worldId']].loc[airlineDf['name'] == airlineName].to_string(header=False, index=False).strip()
-    userId = airlineDf[['userId']].loc[airlineDf['name'] == airlineName].to_string(header=False, index=False).strip()
-    if ('Empty DataFrame' not in worldId and 'Empty DataFrame' not in userId):
-        tryServer = False
-    else:
-        print("Airline does not exist, retry.")
-gameServer = {
-    "world": worldId,
-    "userid": userId
-}
-
-
-# enter world
-print("entering world {} with {}".format(worldId, airlineName))
-phpSessidReq = api.enterWorld(worldReq, gameServer)
-
+if (varValue == None):
+    forumSessidReq = api.getPageSession()
+    worldReq, airlineDf = api.doLogin(args, forumSessidReq)
+    phpSessidReq = api.doEnterWorld(args, airlineDf, worldReq)
+else:
+    f = open(varValue, 'rb')
+    phpSessidReq = pickle.loads(f.read())
 
 # get start route params
 recursion = userInput.setVar(args, "recursion", "Continue previous recursion? (y/n) ")
@@ -55,8 +39,14 @@ autoHub = userInput.setVar(args, "autoHub", "Automatically create hub? (y/n) ")
 minFreq = userInput.setVar(args, "minFreq", "Aircraft min frequency: ")
 maxFreq = userInput.setVar(args, "maxFreq", "Aircraft max frequency: ")
 
-airportListCsv = "airportList_{}.csv".format(aircraftType)
-doneAirportListCsv = "doneAirportList__{}.csv".format(aircraftType)
+airportListCsv = "airportList/airportList_{}.csv".format(aircraftType)
+doneAirportListCsv = "doneAirportList/doneAirportList_{}.csv".format(aircraftType)
+
+if not os.path.isdir('./airportList'):
+    os.mkdir('airportList')
+if not os.path.isdir('./doneAirportList'):
+    os.mkdir('doneAirportList')
+
 if (recursion == 'n'):
     f = open(airportListCsv, "w")
     f.write("airport")

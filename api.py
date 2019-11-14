@@ -1,3 +1,4 @@
+import userInput
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -61,16 +62,17 @@ def postRequest(url, cookies, data):
         print(e)
     return r, reqError, errorCode
 
-# get page session id
-sessionReqError = True
-while sessionReqError:
-    print("Getting homepage cookies ...")
-    forumSessidReq, sessionReqError, _ = getRequest(
-        url="http://www.airline-empires.com/index.php?/page/home.html"
-    )
+def getPageSession():
+    # get page session id
+    sessionReqError = True
+    while sessionReqError:
+        print("Getting homepage cookies ...")
+        forumSessidReq, sessionReqError, _ = getRequest(
+            url="http://www.airline-empires.com/index.php?/page/home.html"
+        )
+    return forumSessidReq
 
-
-def login(username, password):
+def login(forumSessidReq, username, password):
     loginReqError = True
     cred.user['ips_username'] = username
     cred.user['ips_password'] = password
@@ -138,6 +140,18 @@ def getWorld(loginReq):
         ], index=False))
     return worldReq, airlineDf, worldReqError
 
+def doLogin(args, forumSessidReq):
+    loginError = True
+    while loginError:
+        # get password and login
+        username = userInput.setVar(args, "username", "Please enter username: ")
+        password = userInput.setVar(args, "password")
+        loginReq = login(forumSessidReq, username, password)
+
+        # get world to join
+        worldReq, airlineDf, loginError = getWorld(loginReq)
+    return worldReq, airlineDf
+
 def enterWorld(worldReq, gameServer):
     phpSessidReqError = True
     while phpSessidReqError:
@@ -147,6 +161,27 @@ def enterWorld(worldReq, gameServer):
             cookies=worldReq.cookies,
             data=gameServer
         )
+    return phpSessidReq
+
+def doEnterWorld(args, airlineDf, worldReq):
+    tryServer = True
+    while tryServer:
+        airlineName = userInput.setVar(args, "airline", "Please enter one of above mentioned airline names: ")
+        # TODO Problem if airline has the same name on different server
+        worldId = airlineDf[['worldId']].loc[airlineDf['name'] == airlineName].to_string(header=False, index=False).strip()
+        userId = airlineDf[['userId']].loc[airlineDf['name'] == airlineName].to_string(header=False, index=False).strip()
+        if ('Empty DataFrame' not in worldId and 'Empty DataFrame' not in userId):
+            tryServer = False
+        else:
+            print("Airline does not exist, retry.")
+    gameServer = {
+        "world": worldId,
+        "userid": userId
+    }
+    
+    # enter world
+    print("entering world {} with {}".format(worldId,airlineName))
+    phpSessidReq = enterWorld(worldReq, gameServer)
     return phpSessidReq
 
 def getFlights(phpSessidReq, searchParams):
@@ -502,7 +537,7 @@ def checkOriSlots(phpSessidReq, autoSlots, autoTerminal, airport):
     # Terminal buying threshold
     if (gateUtilisation >= 80):
         slotsAvailable = False
-        if (autoTerminal == 'y' or autoTerminal == True):
+        if (autoTerminal == 'y'):
             while getTerminalsReqError:
                 getTerminalReq, getTerminalsReqError, _ = getRequest(
                     url="http://ae31.airline-empires.com/termmarket.php",
@@ -542,7 +577,7 @@ def checkTgtSlots(phpSessidReq, autoSlots, autoTerminal, airport, airportSlots, 
     if (airportSlots < (flightReqSlots+2)):
         slotsAvailable = False
         # check if auto slot is on
-        if (autoSlots == 'y' or autoSlots == True):
+        if (autoSlots == 'y'):
             if gatesAvailable:
                 slotsLeaseData = {
                     "quicklease": "Lease 1 {}".format(airport)
@@ -555,7 +590,7 @@ def checkTgtSlots(phpSessidReq, autoSlots, autoTerminal, airport, airportSlots, 
                     )
                 slotsAvailable = True
             else:
-                if (autoTerminal == 'y' or autoTerminal == True):
+                if (autoTerminal == 'y'):
                     while getTerminalsReqError:
                         getTerminalReq, getTerminalsReqError, _ = getRequest(
                             url="http://ae31.airline-empires.com/termmarket.php",
