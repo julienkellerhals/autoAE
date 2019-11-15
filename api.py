@@ -659,3 +659,97 @@ def addFlight(phpSessidReq, city1, city2, addFlightsPostData, frequency):
             data=addFlightsPostData
         )
     print("\tAdded {} flight(s)".format(int(frequency)))
+
+def getRoutes(phpSessidReq, startIdx):
+    routesCols = [
+        "routeId",
+        "city1",
+        "city2",
+        "distance",
+        "frequency",
+        "loadFactorF",
+        "loadFactorC",
+        "loadFactorY",
+        "priceF",
+        "priceC",
+        "priceY",
+        "profit",
+        "details"
+    ]
+    routesDf = pd.DataFrame(columns=routesCols)
+
+    getRoutesReqError = True
+    while getRoutesReqError:
+        getRoutesReq, getRoutesReqError, _ = getRequest(
+            url="http://ae31.airline-empires.com/routes.php?city=all&order=desc&arr_dep=all&next={}".format(startIdx),
+            cookies=phpSessidReq.cookies
+        )
+    getRoutesPage = BeautifulSoup(getRoutesReq.text, 'html.parser')
+    routes = getRoutesPage.find_all("form", id="routes")
+    for route in routes:
+        routeInfos = route.find_all("td")
+        routeId = routeInfos[0].find("input").attrs['id']
+        city1 = routeInfos[2].find_all("a")[0].text
+        city2 = routeInfos[2].find_all("a")[1].text
+        distance = routeInfos[3].text
+        frequency = routeInfos[4].text.split("x Weekly")[0]
+        try:
+            loadFactorF = re.findall(r'\D*(\d+)\D*', routeInfos[5].text)[0]
+        except IndexError:
+            loadFactorF = np.nan
+        try:
+            loadFactorC = re.findall(r'\D*(\d+)\D*', routeInfos[6].text)[0]
+        except IndexError:
+            loadFactorC = np.nan
+        try:
+            loadFactorY = re.findall(r'\D*(\d+)\D*', routeInfos[7].text)[0]
+        except IndexError:
+            loadFactorY = np.nan
+        try:
+            priceF = re.findall(r'\D*(\d+)\D*', routeInfos[8].text)[0]
+        except IndexError:
+            priceF = np.nan
+        try:
+            priceC = re.findall(r'\D*(\d+)\D*', routeInfos[9].text)[0]
+        except IndexError:
+            priceC = np.nan
+        try:
+            priceY = re.findall(r'\D*(\d+)\D*', routeInfos[10].text)[0]
+        except IndexError:
+            priceY = np.nan
+        profit = re.findall(r'[^-]?(-?\d+)\D*', routeInfos[11].text)[0]
+        details = routeInfos[12].find("a").attrs['href']
+        routeSeries = pd.Series([
+            routeId,
+            city1,
+            city2,
+            distance,
+            frequency,
+            loadFactorF,
+            loadFactorC,
+            loadFactorY,
+            priceF,
+            priceC,
+            priceY,
+            profit,
+            details
+        ], index=routesCols)
+        routesDf = routesDf.append(routeSeries, ignore_index=True)
+    return routesDf
+
+def closeRoutes(phpSessidReq, routesDf):
+    closeRoutesData = {
+        "checkedroutes[]": [],
+        "routeaction": "close",
+        "closeroute": "close",
+        "massact": "go"
+    }
+    for _, route in routesDf.iterrows():
+        closeRoutesData['checkedroutes[]'].append(route['routeId'])
+    closeRoutesReqError = True
+    while closeRoutesReqError:
+        _, closeRoutesReqError, _ = postRequest(
+            url="http://ae31.airline-empires.com/routes.php",
+            cookies=phpSessidReq.cookies,
+            data=closeRoutesData
+        )
