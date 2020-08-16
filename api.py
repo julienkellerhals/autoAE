@@ -6,8 +6,16 @@ import math
 import cred
 import pandas as pd
 import numpy as np
+import time
 
 # helper function
+def TrToList(tr):
+    rowList = []
+    for td in tr:
+        if td != '\n':
+            rowList.append(td.text)
+    return rowList
+
 def getRequest(url, cookies=None, params=None):
     r = None
     reqError = True
@@ -17,7 +25,7 @@ def getRequest(url, cookies=None, params=None):
             url=url,
             cookies=cookies,
             params=params,
-            timeout=20
+            timeout=210
         )
         r.raise_for_status()
         reqError = False
@@ -44,7 +52,7 @@ def postRequest(url, cookies, data):
             url,
             cookies=cookies,
             data=data,
-            timeout=20
+            timeout=210
         )
         r.raise_for_status()
         reqError = False
@@ -245,7 +253,7 @@ def getFlightDemand(phpSessidReq, flight):
                 cookies=phpSessidReq.cookies
             )
         routeDetailsPage = BeautifulSoup(flightDetailsReq.text, 'html.parser')
-        highChartsScript = routeDetailsPage.findAll('script')[8:9][0].text
+        highChartsScript = routeDetailsPage.findAll('script')[10].text
         rawData = re.findall(r"data: \[\d*,\d*,\d*\]", highChartsScript)[0]
         flightDemand = [int(x) for x in re.findall(r"\d*,\d*,\d*", rawData)[0].split(',')]
         print()
@@ -528,11 +536,18 @@ def checkOriSlots(phpSessidReq, autoSlots, autoTerminal, airport):
             url=("http://ae31.airline-empires.com/" + airlineDetailsHref),
             cookies=phpSessidReq.cookies
         )
-    gateUtilisationPage = BeautifulSoup(gateUtilisationReq.text, 'html.parser')
+    gateUtilisationPage = BeautifulSoup(gateUtilisationReq.text, 'lxml')
     # TODO implement part when there is no bought slot from this airport
-    gateRow = gateUtilisationPage.find_all('a', text=airport)[-1:][0].parent.parent.parent
-    gateAmount = int(gateRow.contents[5].text) + 5
-    gateUtilisation = int(gateRow.contents[-1:][0].text.split('%')[0])
+    gateUtilisationTable = gateUtilisationPage.find(id='airline_airport_list')
+    gateTableHeaders = TrToList(gateUtilisationTable.find_all('tr')[0].findAll('td'))
+    gateTableRowList = []
+    for tr in gateUtilisationTable.find_all('tr')[1:]:
+        gateTableRow = TrToList(tr)
+        gateTableRowList.append(dict(zip(gateTableHeaders, gateTableRow)))
+    gateUtilisationDf = pd.DataFrame(gateTableRowList)
+    gateUtilisationDf = gateUtilisationDf.astype(dict(zip(gateTableHeaders, ['str','str','int','str'])))
+    gateAmount = gateUtilisationDf.loc[gateUtilisationDf['Code'] == airport]['Gates'] + 5
+    gateUtilisation = gateUtilisationDf.loc[gateUtilisationDf['Code'] == airport]['Utilization'].to_string(index=False).lstrip().split('%')[0]
 
     # Terminal buying threshold
     if (gateUtilisation >= 80):
