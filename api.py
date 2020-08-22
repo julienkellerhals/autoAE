@@ -192,6 +192,64 @@ def doEnterWorld(args, airlineDf, worldReq):
     phpSessidReq = enterWorld(worldReq, gameServer)
     return phpSessidReq
 
+def getAircraftStats(phpSessidReq):
+    mainPageReqError = True
+    getAircraftsReqError = True
+    aircraftStatsCol = [
+        "aircraft",
+        "range",
+        "minRunway"
+    ]
+    aircraftStatsDf = pd.DataFrame(columns=aircraftStatsCol)
+
+    while mainPageReqError:
+        mainPageReq, mainPageReqError, _ = getRequest(
+            url="http://ae31.airline-empires.com/main.php",
+            cookies=phpSessidReq.cookies
+        )
+    mainPage = BeautifulSoup(mainPageReq.text, 'lxml')
+    airlineDetailsHref = mainPage.find('a', text="Airline Details").attrs['href']
+
+
+    while getAircraftsReqError:
+        getAircraftsReq, getAircraftsReqError, _ = getRequest(
+            url=("http://ae31.airline-empires.com/" + airlineDetailsHref),
+            cookies=phpSessidReq.cookies
+        )
+    
+    aircraftListPage = BeautifulSoup(getAircraftsReq.text, 'lxml')
+    aircraftHrefList = aircraftListPage.find_all("a", href = re.compile(r'acdata.php\?aircraft*'))
+    dedupAircraftHrefList = list(dict.fromkeys(aircraftHrefList))
+    for aircraftHref in dedupAircraftHrefList:
+        aircraftDetailReqError = True
+
+        while aircraftDetailReqError:
+            getAircraftDetailReq, aircraftDetailReqError, _ = getRequest(
+                url=("http://ae31.airline-empires.com/" + aircraftHref.attrs['href']),
+                cookies=phpSessidReq.cookies
+            )
+
+        aircraftDetailPage = BeautifulSoup(getAircraftDetailReq.text, 'lxml')
+        aircraftName = aircraftDetailPage.find_all("div", class_="pagetitle")[0].text.strip(" Aircraft Information")
+        engineInfoTable = aircraftDetailPage.find_all("table")[-1]
+
+        maxRangeEngineSeries = pd.Series(['',0,0], index=aircraftStatsCol)
+        for tr in engineInfoTable.find_all('tr')[1:]:
+            engineTableRow = TrToList(tr)
+            engineRange = int(re.sub(r' mi.*', '', engineTableRow[7]).replace(',',''))
+            engineMinRunway = int(engineTableRow[9].replace(',',''))
+
+            aircraftStats = pd.Series([
+                aircraftName,
+                engineRange,
+                engineMinRunway
+            ], index=aircraftStatsCol)
+
+            if maxRangeEngineSeries['range'] < aircraftStats['range']:
+                maxRangeEngineSeries = aircraftStats
+        aircraftStatsDf = aircraftStatsDf.append(maxRangeEngineSeries, ignore_index=True)
+    return aircraftStatsDf
+
 def getFlights(phpSessidReq, searchParams):
     listFlightsReqError = True
     slotsRegex = r"\((\d*).*\)"
@@ -547,7 +605,7 @@ def checkOriSlots(phpSessidReq, autoSlots, autoTerminal, airport):
     gateUtilisationDf = pd.DataFrame(gateTableRowList)
     gateUtilisationDf = gateUtilisationDf.astype(dict(zip(gateTableHeaders, ['str','str','int','str'])))
     gateAmount = gateUtilisationDf.loc[gateUtilisationDf['Code'] == airport]['Gates'] + 5
-    gateUtilisation = gateUtilisationDf.loc[gateUtilisationDf['Code'] == airport]['Utilization'].to_string(index=False).lstrip().split('%')[0]
+    gateUtilisation = int(gateUtilisationDf.loc[gateUtilisationDf['Code'] == airport]['Utilization'].to_string(index=False).lstrip().split('%')[0])
 
     # Terminal buying threshold
     if (gateUtilisation >= 80):

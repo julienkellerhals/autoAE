@@ -20,13 +20,28 @@ else:
     f = open(varValue, 'rb')
     phpSessidReq = pickle.loads(f.read())
 
-# get routes from departure airport
+aircraftStatsDf = api.getAircraftStats(phpSessidReq)
+aircraftList = aircraftStatsDf['aircraft'].sort_values().astype(str).values.flatten().tolist()
+print("Available aircraft types:")
+print(', '.join(aircraftList))
+aircraftType = userInput.setVar(args, "aircraftType", "Aircraft type to use: ")
 flightCountry = userInput.setVar(args, "country", "Flight country: ")
 flightRegion = userInput.setVar(args, "region", "Flight region: ")
-requiredRunway = userInput.setVar(args, "reqRW", "Minimum runway length: ")
+# requiredRunway = userInput.setVar(args, "reqRW", "Minimum runway length: ")
+requiredRunway = aircraftStatsDf['minRunway'].loc[aircraftStatsDf['aircraft'] == aircraftType].values[0]
+print("Minimum runway length of {} is {}ft".format(aircraftType, requiredRunway))
 rangeMin = userInput.setVar(args, "rgMin", "Flight minimum range: ")
-rangeMax = userInput.setVar(args, "rgMax", "Flight maximum range: ")
+rangeMax = aircraftStatsDf['range'].loc[aircraftStatsDf['aircraft'] == aircraftType]
+tempRangeMax = userInput.setVar(args, "rgMax", "Flight maximum range ({}): ".format(rangeMax))
+if tempRangeMax != '':
+    rangeMax = tempRangeMax
 depAirportCode = userInput.setVar(args, "depAirportCode", "Departure airport code: ")
+reducedCapacityFlag = userInput.setVar(args, "reducedCapacity", "Allow flights over intended range? (y/n) ")
+autoSlots = userInput.setVar(args, "autoSlots", "Automatically buy slots? (y/n) ")
+autoTerminal = userInput.setVar(args, "autoTerminal", "Automatically build terminal? (y/n) ")
+autoHub = userInput.setVar(args, "autoHub", "Automatically create hub? (y/n) ")
+minFreq = userInput.setVar(args, "minFreq", "Aircraft min frequency: ")
+maxFreq = userInput.setVar(args, "maxFreq", "Aircraft max frequency: ")
 
 searchParams = {
     "country": flightCountry,
@@ -44,15 +59,6 @@ availableFlightsDf = flightsDf[["airport","flightUrl","slots","gatesAvailable"]]
 if not availableFlightsDf.empty:
     print("Available flights")
     print(availableFlightsDf.to_string(index=False))
-
-    # create routes from airport
-    aircraftType = userInput.setVar(args, "aircraftType", "Aircraft type to use: ")
-    reducedCapacityFlag = userInput.setVar(args, "reducedCapacity", "Allow flights over intended range? (y/n) ")
-    autoSlots = userInput.setVar(args, "autoSlots", "Automatically buy slots? (y/n) ")
-    autoTerminal = userInput.setVar(args, "autoTerminal", "Automatically build terminal? (y/n) ")
-    autoHub = userInput.setVar(args, "autoHub", "Automatically create hub? (y/n) ")
-    minFreq = userInput.setVar(args, "minFreq", "Aircraft min frequency: ")
-    maxFreq = userInput.setVar(args, "maxFreq", "Aircraft max frequency: ")
 
     # Add hub
     if (autoHub == "y"):
