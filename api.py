@@ -230,7 +230,7 @@ def getAircraftStats(phpSessidReq):
             )
 
         aircraftDetailPage = BeautifulSoup(getAircraftDetailReq.text, 'lxml')
-        aircraftName = aircraftDetailPage.find_all("div", class_="pagetitle")[0].text.strip(" Aircraft Information")
+        aircraftName = aircraftDetailPage.find_all("div", class_="pagetitle")[0].text.replace(" Aircraft Information", '')
         engineInfoTable = aircraftDetailPage.find_all("table")[-1]
 
         maxRangeEngineSeries = pd.Series(['',0,0], index=aircraftStatsCol)
