@@ -31,7 +31,7 @@ flightRegion = userInput.setVar(args, "region", "Flight region: ")
 requiredRunway = aircraftStatsDf['minRunway'].loc[aircraftStatsDf['aircraft'] == aircraftType].values[0]
 print("Minimum runway length of {} is {}ft".format(aircraftType, requiredRunway))
 rangeMin = userInput.setVar(args, "rgMin", "Flight minimum range: ")
-rangeMax = aircraftStatsDf['range'].loc[aircraftStatsDf['aircraft'] == aircraftType]
+rangeMax = aircraftStatsDf['range'].loc[aircraftStatsDf['aircraft'] == aircraftType].values[0]
 tempRangeMax = userInput.setVar(args, "rgMax", "Flight maximum range ({}): ".format(rangeMax))
 if tempRangeMax != '':
     rangeMax = tempRangeMax
