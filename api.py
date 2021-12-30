@@ -311,7 +311,7 @@ def getFlightDemand(phpSessidReq, flight):
                 cookies=phpSessidReq.cookies
             )
         routeDetailsPage = BeautifulSoup(flightDetailsReq.text, 'html.parser')
-        highChartsScript = routeDetailsPage.findAll('script')[10].text
+        highChartsScript = str(routeDetailsPage.findAll('script')[10])
         rawData = re.findall(r"data: \[\d*,\d*,\d*\]", highChartsScript)[0]
         flightDemand = [int(x) for x in re.findall(r"\d*,\d*,\d*", rawData)[0].split(',')]
         print()
