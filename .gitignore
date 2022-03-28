@@ -1,9 +1,10 @@
 .vscode
 output.html
-cred.py
-/__pycache__/
-airportList/airportList_*.csv
-doneAirportList/doneAirportList_*.csv
+/temp/cred.py
+/__pycache__/**
+**/__pycache__/**
+/temp/airportList/airportList_*.csv
+/temp/doneAirportList/doneAirportList_*.csv
 /*json
 /notes.txt
 /flightRequest.csv

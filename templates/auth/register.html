@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+</style>
+{% endblock %}
+
+{% set active_page = "register" %}
+
+{% block container %}
+<div id="container">
+    <form action="{{postReqUrl}}" method="post">
+        <label for="sectionName">Section</label>
+        <select class="browser-default" name="sectionName" id="sectionList"></select>
+        <label for="memberName">Member Name</label>
+        <input type="text" name="memberName" value="{{memberName}}">
+        <label for="username">Username</label>
+        <input type="text" name="username" value="{{username}}">
+        <label for="password">Password</label>
+        <input type="password" name="password">
+        <input type="submit" value="Register">
+    </form>
+    <a href="/auth/login">Have an account?</a>
+    {% if errorMsg is not none %}
+        {{errorMsg}}
+    {% endif %}
+    
+    <script>
+        M.AutoInit();
+
+        var url = "http://localhost:5000/section/list";
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url);
+        
+        xhr.setRequestHeader("Accept", "*/*");
+
+        xhr.onreadystatechange = function () {
+           if (xhr.readyState === 4) {
+                let select = document.getElementById("sectionList")
+                let itemsList = JSON.parse(xhr.responseText)["list"];
+                console.log(itemsList)
+                itemsList.forEach((item) => {
+                    let option = document.createElement("option")
+                    option.innerHTML = item
+                    option.value = item
+                    select.appendChild(option)
+                });
+                document.addEventListener('DOMContentLoaded', function() {
+                    var instances = M.FormSelect.init(select, options);
+                });
+           }};
+        
+        xhr.send();
+    </script>
+</div>
+{% endblock %}
