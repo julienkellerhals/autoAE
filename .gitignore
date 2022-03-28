@@ -1,7 +1,8 @@
 .vscode
 output.html
 /temp/cred.py
-/__pycache__/
+/__pycache__/**
+**/__pycache__/**
 /temp/airportList/airportList_*.csv
 /temp/doneAirportList/doneAirportList_*.csv
 /*json
