@@ -34,6 +34,13 @@
             <a href="/" class="brand-logo">Auto AE</a>
             <ul id="nav-mobile" class="right hide-on-med-and-down">
                 {% if current_user.is_authenticated %} 
+                    <li {% if active_page == "airline" %} class="active"{% endif%}><a href="/airline/">
+                        {% if active_page_name is defined %}
+                            {{active_page_name}}
+                        {% else %}
+                            AE Connect
+                        {% endif %}
+                    </a></li>    
                     <li><a href="/auth/logout">{{current_user.member}} Logout</a></li>    
                 {% else %}
                     <li {% if active_page == "login" %} class="active"{% endif%}><a href="/auth/login">Login</a></li>    
