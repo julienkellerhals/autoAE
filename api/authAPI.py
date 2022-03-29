@@ -19,7 +19,7 @@ def constructBlueprint(users: Users) -> Blueprint:
 
     def loginAction(username: str, password: str) -> bool:
         if username != "" and username is not None:
-            userId: bytes = users.getMemberId(username)
+            userId: str = users.getMemberId(username)
             pwHash: str = users.getPasswordHash(username)
             if check_password_hash(pwHash, password):
                 user = users.get(userId)
