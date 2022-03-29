@@ -3,6 +3,7 @@ from flask import render_template
 from flask_login import LoginManager
 
 from api import authAPI
+from service.auth.users import Users
 
 
 app = Flask(__name__)
@@ -14,12 +15,12 @@ app.secret_key = (
 loginManager = LoginManager()
 loginManager.init_app(app)
 loginManager.login_view = "/auth/login"
-# users = Users(neo)
+users = Users()
 
 
-# @loginManager.user_loader
-# def load_user(userId):
-#     return users.get(userId)
+@loginManager.user_loader
+def load_user(userId):
+    return users.get(userId)
 
 
 @app.route('/')
@@ -29,11 +30,11 @@ def base():
     )
 
 
-# app.register_blueprint(authAPI.constructBlueprint(
-#         users
-#     ),
-#     url_prefix="/auth"
-# )
+app.register_blueprint(authAPI.constructBlueprint(
+        users
+    ),
+    url_prefix="/auth"
+)
 
 
 if __name__ == '__main__':
