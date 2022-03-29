@@ -15,6 +15,11 @@ class Users():
                 self.userList = json.load(f)
         else:
             self.path.touch()
+            self.writeJson()
+
+    def writeJson(self) -> None:
+        with open(self.path, "w") as f:
+                json.dump(self.userList, f)
 
     def get(self, userId: bytes) -> User:
         user: dict = self.userList[userId]
@@ -31,31 +36,32 @@ class Users():
 
     def getPasswordHash(self, username: str) -> str:
         pwHash = None
-        queryRes = [u for u in self.userList if u["username"] == username]
+        queryRes = [self.userList[u] for u in self.userList if self.userList[u]["username"] == username]
         if len(queryRes) > 0:
-            pwHash = queryRes[0]["n"]["password"]
+            pwHash = queryRes[0]["password"]
         return pwHash
 
-    def getMemberId(self, username: str) -> bytes:
+    def getMemberId(self, username: str) -> str:
         userId: str = None
-        queryRes = [u for u in self.userList if u["username"] == username]
+        queryRes = [u for u in self.userList if self.userList[u]["username"] == username]
         if len(queryRes) > 0:
-            userId = queryRes[0].key()
+            userId = queryRes[0]
         return userId
 
     def createUser(self, username: str, pwHash: str) -> None:
         userId = random.randint(0, 100000)
         user: dict = {}
         user["is_authenticated"] = False
-        user["is_active"] = False
+        user["is_active"] = True
         user["is_anonymous"] = False
         user["username"] = username
         user["password"] = pwHash
         self.userList[userId] = user
 
-        json.dump(self.userList, self.path)
+        self.writeJson()
 
     def setAuth(self, userId: str, authStatus: bool) -> None:
         user: dict = self.userList[userId]
         user["is_authenticated"] = authStatus
-        json.dump(self.userList, self.path)
+
+        self.writeJson()
