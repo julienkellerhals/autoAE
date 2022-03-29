@@ -21,18 +21,17 @@ class Users():
         with open(self.path, "w") as f:
                 json.dump(self.userList, f)
 
-    def get(self, userId: bytes) -> User:
-        user: dict = self.userList[userId]
-        if user is None:
+    def get(self, userId: str) -> User:
+        if not userId in self.userList.keys():
             return None
-        else:
-            return User(
-                user["is_authenticated"],
-                user["is_active"],
-                user["is_anonymous"],
-                userId,
-                user["username"]
-            )
+        user: dict = self.userList[userId]
+        return User(
+            user["is_authenticated"],
+            user["is_active"],
+            user["is_anonymous"],
+            userId,
+            user["username"]
+        )
 
     def getPasswordHash(self, username: str) -> str:
         pwHash = None

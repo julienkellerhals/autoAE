@@ -3,6 +3,7 @@ from flask import render_template
 from flask_login import LoginManager
 
 from api import authAPI
+from api import airlineAPI
 from service.auth.users import Users
 
 
@@ -34,6 +35,13 @@ app.register_blueprint(authAPI.constructBlueprint(
         users
     ),
     url_prefix="/auth"
+)
+
+
+app.register_blueprint(airlineAPI.constructBlueprint(
+        users
+    ),
+    url_prefix="/airline"
 )
 
 
