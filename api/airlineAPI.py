@@ -1,17 +1,18 @@
+from urllib.parse import urlparse, urljoin
+import pandas as pd
 from flask import request
 from flask import Blueprint
 from flask import render_template, redirect, abort, flash
 from flask_login import login_user, logout_user, login_required, current_user
-from urllib.parse import urlparse, urljoin
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from ae.pageParser import getSessionCookies, doLogin
+from ae.datastore import Datastore
 from service.auth.users import Users
 
 
 def constructBlueprint(users: Users) -> Blueprint:
     airlineApi: Blueprint = Blueprint("airlineApi", __name__)
-    sessionCookies = getSessionCookies()
+    datastore: Datastore = Datastore()
     aeAccount: dict = {
         "connected": False,
         "username": None,
@@ -26,10 +27,17 @@ def constructBlueprint(users: Users) -> Blueprint:
                     "auth/aeConnect.html",
                 )
 
+# TODO create data store with eg all available airlines
+# and create a kind of validity where data only get stored for x min
+# TODO use stream to pipe first 5 error messages
+
     @airlineApi.route("/", methods=["GET"])
     def airlinePage():
+        datastore.getWorld()
+        airlineDf: pd.DataFrame = datastore.datastore["airlines"]["airlineDf"]
         return render_template(
             "airline.html",
+            airlines=airlineDf.to_html(escape=False),
         )
 
     # @airlineApi.route("/login", methods=["POST"])
@@ -77,7 +85,7 @@ def constructBlueprint(users: Users) -> Blueprint:
     def aeConnect():
         username = request.form.get("username")
         password = request.form.get("password")
-        doLogin(username, password, sessionCookies)
+        datastore.login(username, password)
         aeAccount["connected"] = True
 
         return redirect("/airline/")

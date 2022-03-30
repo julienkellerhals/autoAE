@@ -71,10 +71,10 @@ def constructBlueprint(users: Users) -> Blueprint:
         username = request.form.get("username")
         password = request.form.get("password")
         if loginAction(username, password):
-            next = request.args.get("next")
-            if is_safe_url(next):
+            nextUrl = request.args.get("next")
+            if is_safe_url(nextUrl):
                 flash("You were successfully logged in", "info")
-                return redirect(next or "/")
+                return redirect(nextUrl or "/")
             else:
                 return abort(400)
         else:
@@ -95,10 +95,10 @@ def constructBlueprint(users: Users) -> Blueprint:
             pwHash
         )
         if loginAction(username, password):
-            next = request.args.get("next")
-            if is_safe_url(next):
+            nextUrl = request.args.get("next")
+            if is_safe_url(nextUrl):
                 flash("You were successfully logged in", "info")
-                return redirect(next or "/")
+                return redirect(nextUrl or "/")
             else:
                 return abort(400)
         else:
