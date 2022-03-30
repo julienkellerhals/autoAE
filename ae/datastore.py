@@ -1,5 +1,5 @@
-import pandas as pd
 from datetime import datetime
+import pandas as pd
 
 from ae.aeRequest import AeRequest
 from ae.pageParser import PageParser

@@ -3,9 +3,20 @@ from flask import flash
 
 
 class AeRequest():
+    """AE Request class
+    """
     reqCookies = None
 
     def getRequest(self, url: str, params=None):
+        """Get request
+
+        Args:
+            url (str): Get request url
+            params (str, optional): Request params. Defaults to None.
+
+        Returns:
+            r: Request
+        """
         r = None
         reqError = True
         errorCode = None
@@ -35,6 +46,15 @@ class AeRequest():
         return r, reqError, errorCode
 
     def postRequest(self, url: str, data: dict):
+        """Post Request
+
+        Args:
+            url (str): post url
+            data (dict): post body
+
+        Returns:
+            r: request response
+        """
         r = None
         reqError = True
         errorCode = None
@@ -64,6 +84,8 @@ class AeRequest():
         return r, reqError, errorCode
 
     def getSessionCookies(self):
+        """Gets session cookies
+        """
         # get page session id
         sessionReqError = True
         while sessionReqError:
@@ -73,6 +95,15 @@ class AeRequest():
             )
 
     def login(self, username: str, password: str) -> bool:
+        """Login
+
+        Args:
+            username (str): username
+            password (str): password
+
+        Returns:
+            bool: login state
+        """
         if self.reqCookies is None:
             self.getSessionCookies()
 
@@ -97,6 +128,12 @@ class AeRequest():
         return False
 
     def getWorld(self):
+        """Gets available worlds
+
+        Returns:
+            worldReq: world page
+            worldReqError: world request error boolean
+        """
         worldReqError = True
         # get worlds
         while worldReqError:
