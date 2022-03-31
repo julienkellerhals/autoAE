@@ -43,3 +43,10 @@ class Datastore():
                 airlineCols
             )
             self.datastore["airlines"]["airlineDf"] = airlineDf
+
+    def enterWorld(self, worldId: str, userId: str):
+        serverInfo = {
+            "world": worldId,
+            "userid": userId
+        }
+        self.req.enterWorld(serverInfo)
