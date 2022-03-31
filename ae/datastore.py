@@ -25,6 +25,7 @@ class Datastore():
         self.datastore["airlines"]["airlineDf"] = pd.DataFrame(
             columns=self.datastore["airlines"]["airlineCols"]
         )
+        self.datastore["login"] = {}
 
     def login(self, username: str, password: str):
         user = {
@@ -32,7 +33,6 @@ class Datastore():
             "ips_username": username,
             "ips_password": password
         }
-        self.datastore["login"] = {}
         self.datastore["login"]["status"] = self.req.login(user)
         self.datastore["login"]["time"] = datetime.now()
 

@@ -17,7 +17,8 @@ def constructBlueprint(users: Users) -> Blueprint:
     @airlineApi.before_request
     def before_request():
         if request.method == "GET":
-            if not ds.datastore["login"]["status"]:
+            if ("status" not in ds.datastore["login"].keys()
+                or not ds.datastore["login"]["status"]):
                 return render_template(
                     "auth/aeConnect.html",
                 )
