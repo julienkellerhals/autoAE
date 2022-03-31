@@ -27,8 +27,13 @@ class Datastore():
         )
 
     def login(self, username: str, password: str):
+        user = {
+            "auth_key": "880ea6a14ea49e853634fbdc5015a024",
+            "ips_username": username,
+            "ips_password": password
+        }
         self.datastore["login"] = {}
-        self.datastore["login"]["status"] = self.req.login(username, password)
+        self.datastore["login"]["status"] = self.req.login(user)
         self.datastore["login"]["time"] = datetime.now()
 
     def getWorld(self):
