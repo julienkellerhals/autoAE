@@ -144,3 +144,13 @@ class AeRequest():
                 break
 
         return worldReq, worldReqError
+
+    def enterWorld(self, serverInfo: dict):
+        enterWorldReqError = True
+        while enterWorldReqError:
+            # enter world and get php session
+            _, enterWorldReqError, _ = self.postRequest(
+                url="http://www.airline-empires.com/index.php" \
+                    "?app=ae&module=gameworlds&section=enterworld",
+                data=serverInfo
+            )
