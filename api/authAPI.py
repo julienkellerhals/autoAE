@@ -1,8 +1,8 @@
+from urllib.parse import urlparse, urljoin
 from flask import request
 from flask import Blueprint
 from flask import render_template, redirect, abort, flash
 from flask_login import login_user, logout_user, login_required, current_user
-from urllib.parse import urlparse, urljoin
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from service.auth.users import Users

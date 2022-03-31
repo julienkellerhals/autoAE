@@ -10,7 +10,7 @@ class Users():
     userList: dict = {}
 
     def __init__(self) -> None:
-        if (self.path.is_file()):
+        if self.path.is_file():
             with open(self.path) as f:
                 self.userList = json.load(f)
         else:

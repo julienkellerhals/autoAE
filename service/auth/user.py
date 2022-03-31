@@ -2,7 +2,7 @@ class User():
     is_authenticated: bool = None
     is_active: bool = None
     is_anonymous: bool = None
-    id: bytes = None
+    id: str = None
     username: str = None
 
     def __init__(
@@ -10,7 +10,7 @@ class User():
         is_authenticated: bool,
         is_active: bool,
         is_anonymous: bool,
-        id: bytes,
+        id: str,
         username: str,
     ) -> None:
         self.is_authenticated = is_authenticated
@@ -19,5 +19,5 @@ class User():
         self.id = id
         self.username = username
 
-    def get_id(self) -> bytes:
+    def get_id(self) -> str:
         return self.id
