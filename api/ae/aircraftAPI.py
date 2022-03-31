@@ -15,7 +15,7 @@ def constructBlueprint(ds: Datastore) -> Blueprint:
         aircraftStats: pd.DataFrame = ds.datastore["aircraftStats"]["aircraftStatsDf"]
         return render_template(
             "aircraft.html",
-            aircraftStats=aircraftStats.to_html(escape=False),
+            aircraftStats=aircraftStats.to_html(index= False, escape=False),
         )
 
     return aircraftApi
