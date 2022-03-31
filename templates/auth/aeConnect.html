@@ -7,12 +7,11 @@
 </style>
 {% endblock %}
 
-{% set active_page = "airline" %}
-{% set active_page_name = "AE Connect" %}
+{% set active_page = "aeConnect" %}
 
 {% block container %}
 <div id="container">
-    <form action="/airline/aeConnect" method="post">
+    <form action="/ae/connect" method="post">
         <label for="username">Username</label>
         <input type="text" name="username" value="{{username}}">
         <label for="password">Password</label>

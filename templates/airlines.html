@@ -7,13 +7,11 @@
 </style>
 {% endblock %}
 
-{% set active_page = "airline" %}
-{% set active_page_name = "Airlines" %}
+{% set active_page = "airlines" %}
 
 
 {% block container %}
 <div id="container">
-    {{active_page_name}}
     {{airlines|safe}}
     {% if errorMsg is not none %}
         {{errorMsg}}
