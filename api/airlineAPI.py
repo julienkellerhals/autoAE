@@ -40,6 +40,11 @@ def constructBlueprint(users: Users) -> Blueprint:
             airlines=airlineDf.to_html(escape=False),
         )
 
+    @airlineApi.route("/world", methods=["GET"])
+    def worldPage():
+        datastore.enterWorld(request.args.get("world"), request.args.get("player"))
+        return redirect("/")
+
     # @airlineApi.route("/login", methods=["POST"])
     # def login():
     #     username = request.form.get("username")
