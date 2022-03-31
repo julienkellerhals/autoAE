@@ -53,6 +53,8 @@ class PageParser():
             "div",
             class_="pagetitle"
         )[0].text.replace(" Aircraft Information", '')
+        link = f"<a href='/ae/aircraft/use?aircraft={aircraftName}'>{aircraftName}</a>"
+
         engineInfoTable = aircraftDetailPage.find_all("table")[-1]
 
         maxRangeEngineSeries = pd.Series(['',0,0], index=aircraftStatsCols)
@@ -62,7 +64,7 @@ class PageParser():
             engineMinRunway = int(engineTableRow[9].replace(',',''))
 
             aircraftStats = pd.Series([
-                aircraftName,
+                link,
                 engineRange,
                 engineMinRunway
             ], index=aircraftStatsCols)
