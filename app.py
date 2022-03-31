@@ -4,7 +4,6 @@ from flask_login import LoginManager
 
 from api import aeAPI
 from api import authAPI
-from ae.datastore import Datastore
 from service.auth.users import Users
 
 
