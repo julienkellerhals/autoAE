@@ -17,7 +17,7 @@ class PageParser():
                 cash = airlineTable.find_all("td")[8].text
                 worldId = airlineTable.find_all("input")[0].attrs['value'].strip()
                 userId = airlineTable.find_all("input")[1].attrs['value'].strip()
-                link = f"<a href='/airline/?world={worldId}&amp;player={userId}'>{name}</a>"
+                link = f"<a href='/airline/world?world={worldId}&amp;player={userId}'>{name}</a>"
                 airline = pd.Series([
                     worldName,
                     link,
