@@ -12,17 +12,12 @@ from service.auth.users import Users
 
 def constructBlueprint(users: Users) -> Blueprint:
     airlineApi: Blueprint = Blueprint("airlineApi", __name__)
-    datastore: Datastore = Datastore()
-    aeAccount: dict = {
-        "connected": False,
-        "username": None,
-        "password": None
-    }
+    ds: Datastore = Datastore()
 
     @airlineApi.before_request
     def before_request():
         if request.method == "GET":
-            if not aeAccount["connected"]:
+            if not ds.datastore["login"]["status"]:
                 return render_template(
                     "auth/aeConnect.html",
                 )
@@ -33,8 +28,8 @@ def constructBlueprint(users: Users) -> Blueprint:
 
     @airlineApi.route("/", methods=["GET"])
     def airlinePage():
-        datastore.getWorld()
-        airlineDf: pd.DataFrame = datastore.datastore["airlines"]["airlineDf"]
+        ds.getWorld()
+        airlineDf: pd.DataFrame = ds.datastore["airlines"]["airlineDf"]
         return render_template(
             "airline.html",
             airlines=airlineDf.to_html(escape=False),
@@ -42,7 +37,7 @@ def constructBlueprint(users: Users) -> Blueprint:
 
     @airlineApi.route("/world", methods=["GET"])
     def worldPage():
-        datastore.enterWorld(request.args.get("world"), request.args.get("player"))
+        ds.enterWorld(request.args.get("world"), request.args.get("player"))
         return redirect("/")
 
     # @airlineApi.route("/login", methods=["POST"])
@@ -90,8 +85,7 @@ def constructBlueprint(users: Users) -> Blueprint:
     def aeConnect():
         username = request.form.get("username")
         password = request.form.get("password")
-        datastore.login(username, password)
-        aeAccount["connected"] = True
+        ds.login(username, password)
 
         return redirect("/airline/")
 
