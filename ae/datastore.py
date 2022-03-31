@@ -3,6 +3,7 @@ import pandas as pd
 
 from ae.aeRequest import AeRequest
 from ae.pageParser import PageParser
+from service.datastoreBase import datastoreBase
 
 class Datastore():
     req: AeRequest = None
@@ -12,20 +13,7 @@ class Datastore():
     def __init__(self) -> None:
         self.req = AeRequest()
         self.parser = PageParser()
-        self.datastore["airlines"] = {}
-        self.datastore["airlines"]["airlineCols"] = [
-            "worldName",
-            "name",
-            "idleAircraft",
-            "DOP",
-            "cash",
-            "worldId",
-            "userId"
-        ]
-        self.datastore["airlines"]["airlineDf"] = pd.DataFrame(
-            columns=self.datastore["airlines"]["airlineCols"]
-        )
-        self.datastore["login"] = {}
+        self.datastore = datastoreBase
 
     def login(self, username: str, password: str):
         user = {
@@ -55,3 +43,17 @@ class Datastore():
             "userid": userId
         }
         self.req.enterWorld(serverInfo)
+
+    def getAircraftStats(self):
+        mainPageReq = self.req.getMainPage()
+        airlineDetailsHref = self.parser.getAirlineDetails(mainPageReq.text)
+        aircraftReq = self.req.getAircraft(airlineDetailsHref)
+        aircraftList = self.parser.getAircraftList(aircraftReq.text)
+
+        for aircraft in aircraftList:
+            aircraftDetailsReq = self.req.getAircraftDetails(aircraft.attrs['href'])
+            self.datastore["aircraftStats"]["aircraftStatsDf"] = self.parser.getAircraftDetails(
+                aircraftDetailsReq.text,
+                self.datastore["aircraftStats"]["aircraftStatsCols"],
+                self.datastore["aircraftStats"]["aircraftStatsDf"],
+            )

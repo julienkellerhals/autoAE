@@ -6,6 +6,7 @@ class AeRequest():
     """AE Request class
     """
     reqCookies = None
+    fixCookies = False
 
     def getRequest(self, url: str, params=None):
         """Get request
@@ -29,7 +30,8 @@ class AeRequest():
             )
             r.raise_for_status()
             reqError = False
-            self.reqCookies = r.cookies
+            if not self.fixCookies:
+                self.reqCookies = r.cookies
         except requests.exceptions.Timeout as e:
             print("request timed-out")
             print(e)
@@ -67,7 +69,8 @@ class AeRequest():
             )
             r.raise_for_status()
             reqError = False
-            self.reqCookies = r.cookies
+            if not self.fixCookies:
+                self.reqCookies = r.cookies
         except requests.exceptions.Timeout as e:
             print("request timed-out")
             print(e)
@@ -148,3 +151,32 @@ class AeRequest():
                     "?app=ae&module=gameworlds&section=enterworld",
                 data=serverInfo
             )
+        self.fixCookies = True
+
+    def getMainPage(self):
+        mainPageReqError = True
+        while mainPageReqError:
+            mainPageReq, mainPageReqError, _ = self.getRequest(
+                url="http://ae31.airline-empires.com/main.php",
+            )
+        
+        return mainPageReq
+
+    def getAircraft(self, airlineDetailsHref: str):
+        getAircraftReqError = True
+        while getAircraftReqError:
+            getAircraftReq, getAircraftReqError, _ = self.getRequest(
+                url=("http://ae31.airline-empires.com/" + airlineDetailsHref),
+            )
+        
+        return getAircraftReq
+
+    def getAircraftDetails(self, aircraftLink: str):
+        aircraftDetailReqError = True
+
+        while aircraftDetailReqError:
+            getAircraftDetailReq, aircraftDetailReqError, _ = self.getRequest(
+                url=("http://ae31.airline-empires.com/" + aircraftLink),
+            )
+
+        return getAircraftDetailReq
