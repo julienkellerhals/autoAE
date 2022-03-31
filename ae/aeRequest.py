@@ -148,3 +148,31 @@ class AeRequest():
                     "?app=ae&module=gameworlds&section=enterworld",
                 data=serverInfo
             )
+
+    def getMainPage(self):
+        mainPageReqError = True
+        while mainPageReqError:
+            mainPageReq, mainPageReqError, _ = self.getRequest(
+                url="http://ae31.airline-empires.com/main.php",
+            )
+        
+        return mainPageReq
+
+    def getAircraft(self, airlineDetailsHref: str):
+        getAircraftReqError = True
+        while getAircraftReqError:
+            getAircraftReq, getAircraftReqError, _ = self.getRequest(
+                url=("http://ae31.airline-empires.com/" + airlineDetailsHref),
+            )
+        
+        return getAircraftReq
+
+    def getAircraftDetails(self, aircraftLink: str):
+        aircraftDetailReqError = True
+
+        while aircraftDetailReqError:
+            getAircraftDetailReq, aircraftDetailReqError, _ = self.getRequest(
+                url=("http://ae31.airline-empires.com/" + aircraftLink),
+            )
+
+        return getAircraftDetailReq
