@@ -21,6 +21,6 @@ def constructBlueprint(ds: Datastore) -> Blueprint:
     @airlinesApi.route("/join", methods=["GET"])
     def airlinesJoin():
         ds.enterWorld(request.args.get("world"), request.args.get("player"))
-        return redirect("/ae/")
+        return redirect("/ae/aircraft")
 
     return airlinesApi
