@@ -6,6 +6,7 @@ class AeRequest():
     """AE Request class
     """
     reqCookies = None
+    fixCookies = False
 
     def getRequest(self, url: str, params=None):
         """Get request
@@ -29,7 +30,8 @@ class AeRequest():
             )
             r.raise_for_status()
             reqError = False
-            self.reqCookies = r.cookies
+            if not self.fixCookies:
+                self.reqCookies = r.cookies
         except requests.exceptions.Timeout as e:
             print("request timed-out")
             print(e)
@@ -67,7 +69,8 @@ class AeRequest():
             )
             r.raise_for_status()
             reqError = False
-            self.reqCookies = r.cookies
+            if not self.fixCookies:
+                self.reqCookies = r.cookies
         except requests.exceptions.Timeout as e:
             print("request timed-out")
             print(e)
@@ -148,6 +151,7 @@ class AeRequest():
                     "?app=ae&module=gameworlds&section=enterworld",
                 data=serverInfo
             )
+        self.fixCookies = True
 
     def getMainPage(self):
         mainPageReqError = True
