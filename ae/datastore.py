@@ -25,10 +25,15 @@ class Datastore():
         self.datastore["airlines"]["airlineDf"] = pd.DataFrame(
             columns=self.datastore["airlines"]["airlineCols"]
         )
+        self.datastore["login"] = {}
 
     def login(self, username: str, password: str):
-        self.datastore["login"] = {}
-        self.datastore["login"]["status"] = self.req.login(username, password)
+        user = {
+            "auth_key": "880ea6a14ea49e853634fbdc5015a024",
+            "ips_username": username,
+            "ips_password": password
+        }
+        self.datastore["login"]["status"] = self.req.login(user)
         self.datastore["login"]["time"] = datetime.now()
 
     def getWorld(self):
@@ -43,3 +48,10 @@ class Datastore():
                 airlineCols
             )
             self.datastore["airlines"]["airlineDf"] = airlineDf
+
+    def enterWorld(self, worldId: str, userId: str):
+        serverInfo = {
+            "world": worldId,
+            "userid": userId
+        }
+        self.req.enterWorld(serverInfo)

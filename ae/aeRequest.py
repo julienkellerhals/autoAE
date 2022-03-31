@@ -94,12 +94,11 @@ class AeRequest():
                 url="http://www.airline-empires.com/index.php?/page/home.html"
             )
 
-    def login(self, username: str, password: str) -> bool:
+    def login(self, user: dict) -> bool:
         """Login
 
         Args:
-            username (str): username
-            password (str): password
+            user (dict): user data
 
         Returns:
             bool: login state
@@ -108,11 +107,6 @@ class AeRequest():
             self.getSessionCookies()
 
         loginReqError = True
-        user = {
-            "auth_key": "880ea6a14ea49e853634fbdc5015a024",
-            "ips_username": username,
-            "ips_password": password
-        }
         # do login
         for _ in range(5):
             print("Logging in ...")
@@ -144,3 +138,13 @@ class AeRequest():
                 break
 
         return worldReq, worldReqError
+
+    def enterWorld(self, serverInfo: dict):
+        enterWorldReqError = True
+        while enterWorldReqError:
+            # enter world and get php session
+            _, enterWorldReqError, _ = self.postRequest(
+                url="http://www.airline-empires.com/index.php" \
+                    "?app=ae&module=gameworlds&section=enterworld",
+                data=serverInfo
+            )
