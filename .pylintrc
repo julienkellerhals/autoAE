@@ -286,6 +286,8 @@ good-names=_,
            df,
            ds,
            ex,
+           tr,
+           td,
            Run,
 
 # Include a hint for the correct naming format with invalid-name.
