@@ -1,6 +1,7 @@
 from flask import Blueprint
 from flask import render_template
 
+from api.ae import flightAPI
 from api.ae import connectAPI
 from api.ae import airlinesAPI
 from api.ae import aircraftAPI
@@ -33,6 +34,12 @@ def constructBlueprint() -> Blueprint:
             ds
         ),
         url_prefix="/aircraft"
+    )
+
+    aeApi.register_blueprint(flightAPI.constructBlueprint(
+            ds
+        ),
+        url_prefix="/flight"
     )
 
     return aeApi
