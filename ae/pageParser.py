@@ -53,7 +53,7 @@ class PageParser():
             "div",
             class_="pagetitle"
         )[0].text.replace(" Aircraft Information", '')
-        link = f"<a href='/ae/aircraft/use?aircraft={aircraftName}'>{aircraftName}</a>"
+        link = f"<a href='/ae/flight/use?aircraft={aircraftName}'>{aircraftName}</a>"
 
         engineInfoTable = aircraftDetailPage.find_all("table")[-1]
 
