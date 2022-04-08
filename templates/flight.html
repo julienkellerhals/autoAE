@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Flight{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+</style>
+{% endblock %}
+
+{% set active_page = "flight" %}
+
+
+{% block container %}
+<div id="container">
+    {% if errorMsg is not none %}
+        {{errorMsg}}
+    {% endif %}
+</div>
+{% endblock %}
