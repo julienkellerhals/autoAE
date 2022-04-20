@@ -12,6 +12,20 @@
 
 {% block container %}
 <div id="container">
+    <form action="{{postReqUrl}}" method="post">
+        <label for="country">Country</label>
+        <input type="text" name="country">
+        <label for="region">Region</label>
+        <input type="text" name="region">
+        <label for="rangemin">Minimum range</label>
+        <input type="text" name="rangemin">
+        <label for="rangemax">Maximum range</label>
+        <input type="text" name="rangemax" value="{{range}}">
+        <label for="city">City</label>
+        <input type="text" name="city">
+        <input type="submit" value="Search flights">
+    </form>
+    {{flightList|safe}}
     {% if errorMsg is not none %}
         {{errorMsg}}
     {% endif %}
