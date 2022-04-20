@@ -16,6 +16,14 @@ aircraftStatsCols = [
     "minRunway"
 ]
 
+flightsCols = [
+    "airport",
+    "flightUrl",
+    "flightCreated",
+    "slots",
+    "gatesAvailable"
+]
+
 datastoreBase = {
     "login": {},
     "airlines": {
@@ -25,5 +33,10 @@ datastoreBase = {
     "aircraftStats": {
         "aircraftStatsCols": aircraftStatsCols,
         "aircraftStatsDf": pd.DataFrame(columns=aircraftStatsCols)
+    },
+    "flightsList": {
+        "searchParams": {},
+        "flightsListCols": flightsCols,
+        "flightsListDf": pd.DataFrame(columns=flightsCols)
     }
 }
