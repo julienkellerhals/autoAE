@@ -159,7 +159,7 @@ class AeRequest():
             mainPageReq, mainPageReqError, _ = self.getRequest(
                 url="http://ae31.airline-empires.com/main.php",
             )
-        
+
         return mainPageReq
 
     def getAircraft(self, airlineDetailsHref: str):
@@ -168,7 +168,7 @@ class AeRequest():
             getAircraftReq, getAircraftReqError, _ = self.getRequest(
                 url=("http://ae31.airline-empires.com/" + airlineDetailsHref),
             )
-        
+
         return getAircraftReq
 
     def getAircraftDetails(self, aircraftLink: str):
@@ -180,3 +180,14 @@ class AeRequest():
             )
 
         return getAircraftDetailReq
+
+    def getFlightList(self, searchParams: dict):
+        flightsListReqError = True
+
+        while flightsListReqError:
+            flightsListReq, flightsListReqError, _ = self.getRequest(
+                url="http://ae31.airline-empires.com/rentgate.php",
+                params=searchParams
+            )
+
+        return flightsListReq
