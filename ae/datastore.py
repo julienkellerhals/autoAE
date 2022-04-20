@@ -57,3 +57,11 @@ class Datastore():
                 self.datastore["aircraftStats"]["aircraftStatsCols"],
                 self.datastore["aircraftStats"]["aircraftStatsDf"],
             )
+
+    def getFlights(self):
+        flightListReq = self.req.getFlightList(self.datastore["flightsList"]["searchParams"])
+        self.datastore["flightsList"]["flightsListDf"] = self.parser.getFlightList(
+            flightListReq.text,
+            self.datastore["flightsList"]["flightsListCols"],
+            self.datastore["flightsList"]["flightsListDf"]
+        )
