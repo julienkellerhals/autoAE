@@ -9,7 +9,7 @@ import numpy as np
 import time
 
 # helper function
-def TrToList(tr):
+def trToList(tr):
     rowList = []
     for td in tr:
         if td != '\n':
@@ -216,7 +216,7 @@ def getAircraftStats(phpSessidReq):
             url=("http://ae31.airline-empires.com/" + airlineDetailsHref),
             cookies=phpSessidReq.cookies
         )
-    
+
     aircraftListPage = BeautifulSoup(getAircraftsReq.text, 'lxml')
     aircraftHrefList = aircraftListPage.find_all("a", href = re.compile(r'acdata.php\?aircraft*'))
     dedupAircraftHrefList = list(dict.fromkeys(aircraftHrefList))
@@ -230,12 +230,15 @@ def getAircraftStats(phpSessidReq):
             )
 
         aircraftDetailPage = BeautifulSoup(getAircraftDetailReq.text, 'lxml')
-        aircraftName = aircraftDetailPage.find_all("div", class_="pagetitle")[0].text.replace(" Aircraft Information", '')
+        aircraftName = aircraftDetailPage.find_all(
+            "div",
+            class_="pagetitle"
+        )[0].text.replace(" Aircraft Information", '')
         engineInfoTable = aircraftDetailPage.find_all("table")[-1]
 
         maxRangeEngineSeries = pd.Series(['',0,0], index=aircraftStatsCol)
         for tr in engineInfoTable.find_all('tr')[1:]:
-            engineTableRow = TrToList(tr)
+            engineTableRow = trToList(tr)
             engineRange = int(re.sub(r' mi.*', '', engineTableRow[7]).replace(',',''))
             engineMinRunway = int(engineTableRow[9].replace(',',''))
 
@@ -597,10 +600,10 @@ def checkOriSlots(phpSessidReq, autoSlots, autoTerminal, airport):
     gateUtilisationPage = BeautifulSoup(gateUtilisationReq.text, 'lxml')
     # TODO implement part when there is no bought slot from this airport
     gateUtilisationTable = gateUtilisationPage.find(id='airline_airport_list')
-    gateTableHeaders = TrToList(gateUtilisationTable.find_all('tr')[0].findAll('td'))
+    gateTableHeaders = trToList(gateUtilisationTable.find_all('tr')[0].findAll('td'))
     gateTableRowList = []
     for tr in gateUtilisationTable.find_all('tr')[1:]:
-        gateTableRow = TrToList(tr)
+        gateTableRow = trToList(tr)
         gateTableRowList.append(dict(zip(gateTableHeaders, gateTableRow)))
     gateUtilisationDf = pd.DataFrame(gateTableRowList)
     gateUtilisationDf = gateUtilisationDf.astype(dict(zip(gateTableHeaders, ['str','str','int','str'])))
