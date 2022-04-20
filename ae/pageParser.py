@@ -44,7 +44,10 @@ class PageParser():
 
     def getAircraftList(self, page: str):
         aircraftListPage = BeautifulSoup(page, 'lxml')
-        aircraftHrefList = aircraftListPage.find_all("a", href = re.compile(r'acdata.php\?aircraft*'))
+        aircraftHrefList = aircraftListPage.find_all(
+            "a",
+            href = re.compile(r'acdata.php\?aircraft*')
+        )
         return list(dict.fromkeys(aircraftHrefList))
 
     def getAircraftDetails(self, page: str, aircraftStatsCols: list, aircraftStatsDf: pd.DataFrame):
@@ -72,3 +75,38 @@ class PageParser():
             if maxRangeEngineSeries['range'] < aircraftStats['range']:
                 maxRangeEngineSeries = aircraftStats
         return aircraftStatsDf.append(maxRangeEngineSeries, ignore_index=True)
+
+    def getFlightList(self, page: str, flightsCols: list, flightsDf: pd.DataFrame):
+        slotsRegex = r"\((\d*).*\)"
+        flightListPage = BeautifulSoup(page, 'html.parser')
+        flightListTable = flightListPage.find_all("form")[1]
+        flightList = flightListTable.find_all("tr")[1:]
+        for flightRow in flightList:
+            airport = flightRow.find_all("td")[0].text
+            try:
+                flightUrl = flightRow.find_all("td")[5].find("a").attrs['href']
+            except AttributeError as e:
+                # print("Flight from {} to {} cannot be researched".format(searchParams["city"], airport))
+                print(e)
+            else:
+                if flightRow.find_all("td")[5].find("div") is None:
+                    flightCreated = False
+                else:
+                    flightCreated  = True
+                try:
+                    slots = re.search(slotsRegex, flightRow.find_all("td")[6].text).group(1)
+                except AttributeError:
+                    slots = None
+                if flightRow.find_all("td")[10].find("input") is None:
+                    gatesAvailable = False
+                else:
+                    gatesAvailable = True
+                flight = pd.Series([
+                    airport,
+                    flightUrl,
+                    flightCreated,
+                    slots,
+                    gatesAvailable
+                ], index=flightsCols)
+                flightsDf = flightsDf.append(flight, ignore_index=True)
+        return flightsDf
