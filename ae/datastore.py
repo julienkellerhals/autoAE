@@ -57,3 +57,49 @@ class Datastore():
                 self.datastore["aircraftStats"]["aircraftStatsCols"],
                 self.datastore["aircraftStats"]["aircraftStatsDf"],
             )
+
+    def getFlights(self):
+        flightListReq = self.req.getFlightList(self.datastore["flightsList"]["searchParams"])
+        self.datastore["flightsList"]["flightsListDf"] = self.parser.getFlightList(
+            flightListReq.text,
+            self.datastore["flightsList"]["flightsListCols"],
+            self.datastore["flightsList"]["flightsListDf"]
+        )
+
+    def getAvailableFlights(self):
+        flightsDf = self.datastore["flightsList"]["flightsListDf"]
+        availableFlightsDf = flightsDf[
+            ["airport","flightUrl","slots","gatesAvailable"]
+        ].loc[flightsDf['flightCreated'] is False]
+        return availableFlightsDf
+
+    def createFlight(self):
+        flightParams = self.datastore["flightsList"]["flightParams"]
+        availableFlightsDf = self.getAvailableFlights()
+        # if not availableFlightsDf.empty:
+
+            # Add hub
+            # TODO implement create route
+            # if (flightParams["autoHub"] is True):
+            #     addHub(phpSessidReq, depAirportCode)
+
+            # print("{:20} {:10} {:10} {:10}".format(
+            #         "Destination",
+            #         "First",
+            #         "Business",
+            #         "Economy"
+            # ))
+            # for idx, flight in availableFlightsDf.iterrows():
+            #     api.createFlight(
+            #         phpSessidReq,
+            #         depAirportCode,
+            #         aircraftType,
+            #         reducedCapacityFlag,
+            #         autoSlots,
+            #         autoTerminal,
+            #         minFreq,
+            #         maxFreq,
+            #         flight
+            #     )
+        # else:
+        #     print("No new flights available.")
