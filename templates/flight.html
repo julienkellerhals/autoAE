@@ -12,20 +12,55 @@
 
 {% block container %}
 <div id="container">
-    <form action="{{postReqUrl}}" method="post">
-        <label for="country">Country</label>
-        <input type="text" name="country">
-        <label for="region">Region</label>
-        <input type="text" name="region">
-        <label for="rangemin">Minimum range</label>
-        <input type="text" name="rangemin">
-        <label for="rangemax">Maximum range</label>
-        <input type="text" name="rangemax" value="{{range}}">
-        <label for="city">City</label>
-        <input type="text" name="city">
-        <input type="submit" value="Search flights">
-    </form>
-    {{flightList|safe}}
+    {% if mode == "use" %}
+        <form action="{{postReqUrl}}" method="post">
+            <label for="country">Country</label>
+            <input type="text" name="country">
+            <label for="region">Region</label>
+            <input type="text" name="region">
+            <label for="rangemin">Minimum range</label>
+            <input type="text" name="rangemin">
+            <label for="rangemax">Maximum range</label>
+            <input type="text" name="rangemax" value="{{range}}">
+            <label for="city">Departure airport code</label>
+            <input type="text" name="city">
+            <input type="submit" value="Search flights">
+        </form>
+    {% else %}
+        <form action="{{postReqUrl}}" method="post">
+            <label for="reducedCap">Flights over intended range?</label>
+            <input type="radio" name="reducedCap" id="reducedCapTrue">
+            <label for="reducedCapTrue">Yes</label>
+            <input type="radio" name="reducedCap" id="reducedCapFalse">
+            <label for="reducedCapFalse">No</label>
+            <br>
+            <label for="autoSlots">Automatically buy slots?</label>
+            <input type="radio" name="autoSlots" id="autoSlotsTrue">
+            <label for="autoSlotsTrue">Yes</label>
+            <input type="radio" name="autoSlots" id="autoSlotsFalse">
+            <label for="autoSlotsFalse">No</label>
+            <br>
+            <label for="autoTerminal">Automatically build terminal?</label>
+            <input type="radio" name="autoTerminal" id="autoTerminalTrue">
+            <label for="autoTerminalTrue">Yes</label>
+            <input type="radio" name="autoTerminal" id="autoTerminalFalse">
+            <label for="autoTerminalFalse">No</label>
+            <br>
+            <label for="autoHub">Automatically create hub?</label>
+            <input type="radio" name="autoHub" id="autoHubTrue">
+            <label for="autoHubTrue">Yes</label>
+            <input type="radio" name="autoHub" id="autoHubFalse">
+            <label for="autoHubFalse">No</label>
+            <br>
+            <input type="text" name="minFreq">
+            <label for="minFreq">Minimum frequency</label>
+            <input type="text" name="maxFreq">
+            <label for="maxFreq">Maximum frequency</label>
+            <br>
+            <input type="submit" value="Create flights">
+        </form>
+        {{flightList|safe}}
+    {% endif %}
     {% if errorMsg is not none %}
         {{errorMsg}}
     {% endif %}
