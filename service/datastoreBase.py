@@ -36,6 +36,7 @@ datastoreBase = {
     },
     "flightsList": {
         "searchParams": {},
+        "flightParams": {},
         "flightsListCols": flightsCols,
         "flightsListDf": pd.DataFrame(columns=flightsCols)
     }
