@@ -13,8 +13,24 @@ def constructBlueprint(ds: Datastore) -> Blueprint:
         flightList: pd.DataFrame = ds.datastore["flightsList"]["flightsListDf"]
         return render_template(
             "flight.html",
+            postReqUrl = "/ae/flight/create",
             flightList=flightList.to_html(index= False, escape=False),
         )
+
+    @flightApi.route("/create", methods=["POST"])
+    def flightCreate():
+        # TODO missing args
+        flightParams = {
+            "reducedCap": False,
+            "autoSlots": False,
+            "autoTerminal": False,
+            "autoHub": False,
+            "minFreq": request.values["minFreq"],
+            "maxFreq": request.values["maxFreq"]
+        }
+        ds.datastore["flightsList"]["flightParams"] = flightParams
+        ds.createFlight()
+        return redirect("/ae/flight")
 
     @flightApi.route("/use", methods=["GET"])
     def flightSearchPage():
@@ -22,6 +38,7 @@ def constructBlueprint(ds: Datastore) -> Blueprint:
         aircraft = df[df["aircraft"].str.contains(request.args["aircraft"], regex=False)]
         return render_template(
             "flight.html",
+            mode="use",
             postReqUrl = "/ae/flight/use?aircraft=" + request.args["aircraft"],
             range = aircraft["range"].values[0]
 
@@ -32,14 +49,16 @@ def constructBlueprint(ds: Datastore) -> Blueprint:
         df = ds.datastore["aircraftStats"]["aircraftStatsDf"]
         aircraft = df[df["aircraft"].str.contains(request.args["aircraft"], regex=False)]
         runway = aircraft["minRunway"].values[0]
-        ds.datastore["flightsList"]["searchParams"]["country"] = request.values["country"]
-        ds.datastore["flightsList"]["searchParams"]["region"] = request.values["region"]
-        ds.datastore["flightsList"]["searchParams"]["runway"] = runway
-        ds.datastore["flightsList"]["searchParams"]["rangemin"] = request.values["rangemin"]
-        ds.datastore["flightsList"]["searchParams"]["rangemax"] = request.values["rangemax"]
-        ds.datastore["flightsList"]["searchParams"]["city"] = request.values["city"]
+        searchParams = {
+            "country": request.values["country"],
+            "region": request.values["region"],
+            "runway": runway,
+            "rangemin": request.values["rangemin"],
+            "rangemax": request.values["rangemax"],
+            "city": request.values["city"]
+        }
+        ds.datastore["flightsList"]["searchParams"] = searchParams
         ds.getFlights()
-        # flightList: pd.DataFrame = ds.datastore["flightsList"]["flightsListDf"]
         return redirect("/ae/flight")
 
     return flightApi
