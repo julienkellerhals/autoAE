@@ -16,6 +16,17 @@ aircraftStatsCols = [
     "minRunway"
 ]
 
+availableAircraftsCols = [
+    "frequency",
+    "aircraft",
+    "type",
+    "seatF",
+    "seatC",
+    "seatY",
+    "reducedCapacity",
+    "hours"
+]
+
 flightsCols = [
     "airport",
     "flightUrl",
@@ -38,6 +49,8 @@ datastoreBase = {
         "searchParams": {},
         "flightParams": {},
         "flightsListCols": flightsCols,
-        "flightsListDf": pd.DataFrame(columns=flightsCols)
-    }
+        "flightsListDf": pd.DataFrame(columns=flightsCols),
+        "availableAircraftsCols": availableAircraftsCols,
+        "availableAircraftsDf": pd.DataFrame(columns=availableAircraftsCols),
+    },
 }
