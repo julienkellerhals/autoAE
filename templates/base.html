@@ -35,7 +35,7 @@
             <ul id="nav-mobile" class="right hide-on-med-and-down">
                 {% if current_user.is_authenticated %}
                     <li {% if active_page == "flight" %} class="active"{% endif%}><a href="/ae/flight">Flight</a></li>
-                    <li {% if active_page == "aircraft" %} class="active"{% endif%}><a href="/ae/aircrafts">Aircraft</a></li>
+                    <li {% if active_page == "aircraft" %} class="active"{% endif%}><a href="/ae/aircraft">Aircraft</a></li>
                     <li {% if active_page == "airlines" %} class="active"{% endif%}><a href="/ae/airlines">Airlines</a></li>
                     <li {% if active_page == "aeConnect" %} class="active"{% endif%}><a href="/ae/connect">AE Connect</a></li>
                     <li><a href="/auth/logout">{{current_user.username}} Logout</a></li>    
