@@ -276,7 +276,7 @@ class Datastore():
         gateUtilizationDf = self.parser.getGateUtilization(gateUtilizationReq.text)
         gateAmount = gateUtilizationDf.loc[gateUtilizationDf['Code'] == airport]['Gates'] + 5
         gateUtilization = int(gateUtilizationDf.loc[
-            gateUtilizationDf['Code'] == airport.upper()
+            gateUtilizationDf['Code'] == airport
         ]['Utilization'].to_string(index=False).lstrip().split('%')[0])
 
         # Terminal buying threshold

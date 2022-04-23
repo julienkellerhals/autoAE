@@ -73,7 +73,7 @@ def constructBlueprint(ds: Datastore) -> Blueprint:
             "runway": runway,
             "rangemin": request.values["rangemin"],
             "rangemax": request.values["rangemax"],
-            "city": request.values["city"]
+            "city": request.values["city"].upper()
         }
         ds.datastore["flightsList"]["searchParams"] = searchParams
         return redirect("/ae/flight?aircraft=" + request.args["aircraft"])
