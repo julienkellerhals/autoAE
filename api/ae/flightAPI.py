@@ -1,3 +1,4 @@
+from threading import Thread
 import pandas as pd
 from flask import Blueprint, request, redirect
 from flask import render_template
@@ -11,9 +12,13 @@ def constructBlueprint(ds: Datastore) -> Blueprint:
     @flightApi.route("/", methods=["GET"])
     def flightPage():
         flightList: pd.DataFrame = ds.datastore["flightsList"]["flightsListDf"]
+        if "aircraft" in request.args:
+            postReqUrl = "/ae/flight/create?aircraft=" + request.args["aircraft"]
+        else:
+            postReqUrl = "/ae/flight/create"
         return render_template(
             "flight.html",
-            postReqUrl = "/ae/flight/create?aircraft=" + request.args["aircraft"],
+            postReqUrl = postReqUrl,
             flightList=flightList.to_html(index= False, escape=False),
         )
 
@@ -35,7 +40,13 @@ def constructBlueprint(ds: Datastore) -> Blueprint:
         flightParams["maxFreq"] = request.values["maxFreq"]
 
         ds.datastore["flightsList"]["flightParams"] = flightParams
-        ds.createFlights(request.args["aircraft"])
+
+        thread = Thread(
+            target=ds.createFlights,
+            args=(request.args["aircraft"],)
+        )
+        thread.daemon = True
+        thread.start()
         return redirect("/ae/flight")
 
     @flightApi.route("/use", methods=["GET"])
