@@ -2,7 +2,9 @@ from flask import Flask
 from flask import render_template
 from flask_login import LoginManager
 
+from api import aeAPI
 from api import authAPI
+from service.auth.users import Users
 
 
 app = Flask(__name__)
@@ -11,15 +13,15 @@ app.secret_key = (
     "9a393ec15f71bbf5dc987d54727823bcbf"
 )
 
-loginManager = LoginManager()
+loginManager: LoginManager = LoginManager()
 loginManager.init_app(app)
 loginManager.login_view = "/auth/login"
-# users = Users(neo)
+users: Users = Users()
 
 
-# @loginManager.user_loader
-# def load_user(userId):
-#     return users.get(userId)
+@loginManager.user_loader
+def load_user(userId):
+    return users.get(userId)
 
 
 @app.route('/')
@@ -29,11 +31,16 @@ def base():
     )
 
 
-# app.register_blueprint(authAPI.constructBlueprint(
-#         users
-#     ),
-#     url_prefix="/auth"
-# )
+app.register_blueprint(authAPI.constructBlueprint(
+        users
+    ),
+    url_prefix="/auth"
+)
+
+
+app.register_blueprint(aeAPI.constructBlueprint(),
+    url_prefix="/ae"
+)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Airlines{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+</style>
+{% endblock %}
+
+{% set active_page = "airlines" %}
+
+
+{% block container %}
+<div id="container">
+    {{airlines|safe}}
+    {% if errorMsg is not none %}
+        {{errorMsg}}
+    {% endif %}
+</div>
+{% endblock %}

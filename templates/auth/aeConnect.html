@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Login{% endblock %}
+{% block title %}AE Connect{% endblock %}
 
 {% block head %}
 {{ super() }}
@@ -7,24 +7,20 @@
 </style>
 {% endblock %}
 
-{% set active_page = "register" %}
+{% set active_page = "aeConnect" %}
 
 {% block container %}
 <div id="container">
-    <form action="{{postReqUrl}}" method="post">
+    <form action="/ae/connect" method="post">
         <label for="username">Username</label>
         <input type="text" name="username" value="{{username}}">
         <label for="password">Password</label>
         <input type="password" name="password">
-        <input type="submit" value="Register">
+        <input type="submit" value="Connect AE Account">
     </form>
-    <a href="/auth/login">Have an account?</a>
+    <a href="https://www.airline-empires.com/index.php?app=core&module=global&section=register">Register new AE account?</a>
     {% if errorMsg is not none %}
         {{errorMsg}}
     {% endif %}
-    
-    <script>
-        M.AutoInit();
-    </script>
 </div>
 {% endblock %}

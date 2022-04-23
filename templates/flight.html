@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Flight{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+</style>
+{% endblock %}
+
+{% set active_page = "flight" %}
+
+
+{% block container %}
+<div id="container">
+    {% if mode == "use" %}
+        <form action="{{postReqUrl}}" method="post">
+            <label for="country">Country</label>
+            <input type="text" name="country">
+            <label for="region">Region</label>
+            <input type="text" name="region">
+            <label for="rangemin">Minimum range</label>
+            <input type="text" name="rangemin">
+            <label for="rangemax">Maximum range</label>
+            <input type="text" name="rangemax" value="{{range}}">
+            <label for="city">Departure airport code</label>
+            <input type="text" name="city">
+            <input type="submit" value="Search flights">
+        </form>
+    {% else %}
+        <form action="{{postReqUrl}}" method="post">
+            <p>
+                <label>
+                    Flights over intended range?
+                </label>
+                <p>
+                    <label>
+                        <input class="with-gap" name="reducedCap" type="radio" value="1"/>
+                        <span>Yes</span>
+                    </label>
+                    <label>
+                        <input class="with-gap" name="reducedCap" type="radio" value="0"/>
+                        <span>No</span>
+                    </label>
+                </p>
+            </p>
+            <p>
+                <label>
+                    Automatically buy slots?
+                </label>
+                <p>
+                    <label>
+                        <input class="with-gap" name="autoSlots" type="radio" value="1"/>
+                        <span>Yes</span>
+                    </label>
+                    <label>
+                        <input class="with-gap" name="autoSlots" type="radio" value="0"/>
+                        <span>No</span>
+                    </label>
+                </p>
+            </p>
+            <p>
+                <label>
+                    Automatically build terminal?
+                </label>
+                <p>
+                    <label>
+                        <input class="with-gap" name="autoTerminal" type="radio" value="1"/>
+                        <span>Yes</span>
+                    </label>
+                    <label>
+                        <input class="with-gap" name="autoTerminal" type="radio" value="0"/>
+                        <span>No</span>
+                    </label>
+                </p>
+            </p>
+            <p>
+                <label>
+                    Automatically create hub?
+                </label>
+                <p>
+                    <label>
+                        <input class="with-gap" name="autoHub" type="radio" value="1"/>
+                        <span>Yes</span>
+                    </label>
+                    <label>
+                        <input class="with-gap" name="autoHub" type="radio" value="0"/>
+                        <span>No</span>
+                    </label>
+                </p>
+            </p>
+            <p>
+                <input type="text" name="minFreq">
+                <label for="minFreq">Minimum frequency</label>
+                <input type="text" name="maxFreq">
+                <label for="maxFreq">Maximum frequency</label>
+            </p>
+            <input type="submit" value="Create flights">
+        </form>
+        {{flightList|safe}}
+    {% endif %}
+    {% if errorMsg is not none %}
+        {{errorMsg}}
+    {% endif %}
+</div>
+{% endblock %}
