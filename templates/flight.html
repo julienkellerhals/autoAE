@@ -28,35 +28,72 @@
         </form>
     {% else %}
         <form action="{{postReqUrl}}" method="post">
-            <label for="reducedCap">Flights over intended range?</label>
-            <input type="radio" name="reducedCap" id="reducedCapTrue">
-            <label for="reducedCapTrue">Yes</label>
-            <input type="radio" name="reducedCap" id="reducedCapFalse">
-            <label for="reducedCapFalse">No</label>
-            <br>
-            <label for="autoSlots">Automatically buy slots?</label>
-            <input type="radio" name="autoSlots" id="autoSlotsTrue">
-            <label for="autoSlotsTrue">Yes</label>
-            <input type="radio" name="autoSlots" id="autoSlotsFalse">
-            <label for="autoSlotsFalse">No</label>
-            <br>
-            <label for="autoTerminal">Automatically build terminal?</label>
-            <input type="radio" name="autoTerminal" id="autoTerminalTrue">
-            <label for="autoTerminalTrue">Yes</label>
-            <input type="radio" name="autoTerminal" id="autoTerminalFalse">
-            <label for="autoTerminalFalse">No</label>
-            <br>
-            <label for="autoHub">Automatically create hub?</label>
-            <input type="radio" name="autoHub" id="autoHubTrue">
-            <label for="autoHubTrue">Yes</label>
-            <input type="radio" name="autoHub" id="autoHubFalse">
-            <label for="autoHubFalse">No</label>
-            <br>
-            <input type="text" name="minFreq">
-            <label for="minFreq">Minimum frequency</label>
-            <input type="text" name="maxFreq">
-            <label for="maxFreq">Maximum frequency</label>
-            <br>
+            <p>
+                <label>
+                    Flights over intended range?
+                </label>
+                <p>
+                    <label>
+                        <input class="with-gap" name="reducedCap" type="radio" value="1"/>
+                        <span>Yes</span>
+                    </label>
+                    <label>
+                        <input class="with-gap" name="reducedCap" type="radio" value="0"/>
+                        <span>No</span>
+                    </label>
+                </p>
+            </p>
+            <p>
+                <label>
+                    Automatically buy slots?
+                </label>
+                <p>
+                    <label>
+                        <input class="with-gap" name="autoSlots" type="radio" value="1"/>
+                        <span>Yes</span>
+                    </label>
+                    <label>
+                        <input class="with-gap" name="autoSlots" type="radio" value="0"/>
+                        <span>No</span>
+                    </label>
+                </p>
+            </p>
+            <p>
+                <label>
+                    Automatically build terminal?
+                </label>
+                <p>
+                    <label>
+                        <input class="with-gap" name="autoTerminal" type="radio" value="1"/>
+                        <span>Yes</span>
+                    </label>
+                    <label>
+                        <input class="with-gap" name="autoTerminal" type="radio" value="0"/>
+                        <span>No</span>
+                    </label>
+                </p>
+            </p>
+            <p>
+                <label>
+                    Automatically create hub?
+                </label>
+                <p>
+                    <label>
+                        <input class="with-gap" name="autoHub" type="radio" value="1"/>
+                        <span>Yes</span>
+                    </label>
+                    <label>
+                        <input class="with-gap" name="autoHub" type="radio" value="0"/>
+                        <span>No</span>
+                    </label>
+                </p>
+            </p>
+            <p>
+                <input type="text" name="minFreq">
+                <label for="minFreq">Minimum frequency</label>
+                <input type="text" name="maxFreq">
+                <label for="maxFreq">Maximum frequency</label>
+            </p>
             <input type="submit" value="Create flights">
         </form>
         {{flightList|safe}}

@@ -110,3 +110,136 @@ class PageParser():
                 ], index=flightsCols)
                 flightsDf = flightsDf.append(flight, ignore_index=True)
         return flightsDf
+
+    def getFlightDemand(self, page: str):
+        routeDetailsPage = BeautifulSoup(page, 'html.parser')
+        highChartsScript = str(routeDetailsPage.findAll('script')[10])
+        rawData = re.findall(r"data: \[\d*,\d*,\d*\]", highChartsScript)[0]
+        flightDemand = [int(x) for x in re.findall(r"\d*,\d*,\d*", rawData)[0].split(',')]
+        print()
+        print("{:10} {:10} {:10}".format(
+            flightDemand[0],
+            flightDemand[1],
+            flightDemand[2])
+        )
+        return flightDemand
+
+    def getAvailableAircrafts(
+        self,
+        page: str,
+        availableAircraftsCols: list,
+    ):
+        availableAircraftsDf = pd.DataFrame(columns=availableAircraftsCols)
+        availableAircraftsPage = BeautifulSoup(page, 'html.parser')
+        newFlightsPage = availableAircraftsPage.find("div", {"id": "newflights"})
+        availableAircraftsTable = newFlightsPage.find(
+            "td",
+            text="Type"
+        ).parent.parent.find_all("tr", recursive=False)[1:]
+
+        for availableAircraftRow in availableAircraftsTable:
+            aircraftData = availableAircraftRow.find_all('td', recursive=False)
+
+            if (
+                aircraftData[0].text ==
+                "You do not have any aircraft available to serve this route."
+            ):
+                print(
+                    "You do not have any aircraft available to serve this route."
+                    "(May also be a bug in AE code)"
+                )
+            else:
+                frequency = aircraftData[0].find_all('option')[-1:][0].text
+
+            aircraftId = aircraftData[1].text
+            aircraftType = aircraftData[2].text
+
+            try:
+                seatF = int(aircraftData[3].find_all('td')[-3:-2][0].text.strip(' F'))
+            except IndexError:
+                seatF = 0
+
+            try:
+                seatC = int(aircraftData[3].find_all('td')[-2:-1][0].text.strip(' C'))
+            except IndexError:
+                seatC = 0
+
+            try:
+                seatY = int(aircraftData[3].find_all('td')[-1:][0].text.strip(' Y'))
+            except IndexError:
+                seatY = 0
+
+            if aircraftData[4].find_all('span') == []:
+                reducedCapacity = False
+            else:
+                reducedCapacity = True
+
+            hours = aircraftData[5].text
+
+            aircraft = pd.Series([
+                frequency,
+                aircraftId,
+                aircraftType,
+                seatF,
+                seatC,
+                seatY,
+                reducedCapacity,
+                hours
+            ], index=availableAircraftsCols)
+            availableAircraftsDf = availableAircraftsDf.append(aircraft, ignore_index=True)
+
+        return availableAircraftsDf
+
+    def getFlightInfo(self, page: str):
+        availableAircraftsPage = BeautifulSoup(page, 'html.parser')
+        newFlightsPage = availableAircraftsPage.find("div", {"id": "newflights"})
+
+        # get prices and ifs
+        flightInfo = newFlightsPage.find('div', 'prices')
+        if flightInfo is not None:
+            flightInfo = flightInfo.contents[0]
+            flightInfoPrices = []
+            try:
+                for allFlightPrices in flightInfo.contents[3].findAll('input'):
+                    flightInfoPrices.append(allFlightPrices.attrs['value'])
+            except:
+                pass
+
+            flightInfoIFS = []
+            try:
+                for allFlightIFS in flightInfo.contents[4].findAll('option'):
+                    try:
+                        allFlightIFS.attrs['selected']
+                        flightInfoIFS.append(allFlightIFS.attrs['value'])
+                    except KeyError:
+                        pass
+            except:
+                for allFlightIFS in flightInfo.find_all("a"):
+                    flightInfoIFS.append(allFlightIFS.attrs['href'].split('id=')[-1:][0])
+
+        return flightInfo, flightInfoPrices, flightInfoIFS
+
+    def getGateUtilization(self, page: str):
+        gateUtilizationPage = BeautifulSoup(page, 'lxml')
+        gateUtilizationTable = gateUtilizationPage.find(id='airline_airport_list')
+        gateTableHeaders = self.trToList(gateUtilizationTable.find_all('tr')[0].findAll('td'))
+        gateTableRowList = []
+        for tr in gateUtilizationTable.find_all('tr')[1:]:
+            gateTableRow = self.trToList(tr)
+            gateTableRowList.append(dict(zip(gateTableHeaders, gateTableRow)))
+        gateUtilizationDf = pd.DataFrame(gateTableRowList)
+        gateUtilizationDf = gateUtilizationDf.astype(
+            dict(zip(gateTableHeaders, ['str','str','int','str']))
+        )
+
+        return gateUtilizationDf
+
+    def getTerminal(self, page: str, airport: str):
+        getTerminalPage = BeautifulSoup(page, 'html.parser')
+        # Not safe, redo
+        try:
+            gateAmount = int(getTerminalPage.find(text=airport).next.next.next) + 5
+        except AttributeError:
+            gateAmount = 5
+
+        return gateAmount

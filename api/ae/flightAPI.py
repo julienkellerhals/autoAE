@@ -13,23 +13,29 @@ def constructBlueprint(ds: Datastore) -> Blueprint:
         flightList: pd.DataFrame = ds.datastore["flightsList"]["flightsListDf"]
         return render_template(
             "flight.html",
-            postReqUrl = "/ae/flight/create",
+            postReqUrl = "/ae/flight/create?aircraft=" + request.args["aircraft"],
             flightList=flightList.to_html(index= False, escape=False),
         )
 
     @flightApi.route("/create", methods=["POST"])
     def flightCreate():
-        # TODO missing args
-        flightParams = {
-            "reducedCap": False,
-            "autoSlots": False,
-            "autoTerminal": False,
-            "autoHub": False,
-            "minFreq": request.values["minFreq"],
-            "maxFreq": request.values["maxFreq"]
-        }
+        flightParams = {}
+        paramList = [
+            "reducedCap",
+            "autoSlots",
+            "autoTerminal",
+            "autoHub"
+        ]
+        for param in paramList:
+            if request.values[param] == "1":
+                flightParams[param] = True
+            else:
+                flightParams[param] = False
+        flightParams["minFreq"] = request.values["minFreq"]
+        flightParams["maxFreq"] = request.values["maxFreq"]
+
         ds.datastore["flightsList"]["flightParams"] = flightParams
-        ds.createFlight()
+        ds.createFlights(request.args["aircraft"])
         return redirect("/ae/flight")
 
     @flightApi.route("/use", methods=["GET"])
@@ -59,6 +65,6 @@ def constructBlueprint(ds: Datastore) -> Blueprint:
         }
         ds.datastore["flightsList"]["searchParams"] = searchParams
         ds.getFlights()
-        return redirect("/ae/flight")
+        return redirect("/ae/flight?aircraft=" + request.args["aircraft"])
 
     return flightApi

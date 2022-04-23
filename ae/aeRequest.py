@@ -191,3 +191,104 @@ class AeRequest():
             )
 
         return flightsListReq
+
+    def createHub(self, airport: str):
+        addTerminalReqError = True
+        addHubReqError = True
+
+        buildTerminalData = {
+            "qty": "5",
+            "id": airport,
+            "price": "0",
+            "action": "go"
+        }
+        while addTerminalReqError:
+            _, addTerminalReqError, _ = self.getRequest(
+                url="http://ae31.airline-empires.com/buildterm.php",
+                params=buildTerminalData
+            )
+
+        addHubData = {
+            "hub": airport,
+            "hubaction": "Open+Hub"
+        }
+        while addHubReqError:
+            _, addHubReqError, _ = self.getRequest(
+                url="http://ae31.airline-empires.com/newhub.php",
+                params=addHubData
+            )
+
+    def getFlightDemand(self, flightUrl: str):
+        flightDetailsReqError = True
+
+        while flightDetailsReqError:
+            flightDetailsReq, flightDetailsReqError, _ = self.getRequest(
+                url="http://ae31.airline-empires.com/" + flightUrl
+            )
+
+        return flightDetailsReq
+
+    def getAvailableAircrafts(self, route: dict):
+        availableAircraftsReqError = True
+
+        while availableAircraftsReqError:
+            availableAircraftsReq, availableAircraftsReqError, _ = self.postRequest(
+                url="http://ae31.airline-empires.com/route_details.php?city1={}&city2={}".format(
+                    route['city1'],
+                    route['city2']
+                ),
+                data=route
+            )
+
+        return availableAircraftsReq
+
+    def getGateUtilization(self, airlineDetailsHref: str):
+        gateUtilizationReqError = True
+
+        while gateUtilizationReqError:
+            gateUtilizationReq, gateUtilizationReqError, _ = self.getRequest(
+                url=("http://ae31.airline-empires.com/" + airlineDetailsHref),
+            )
+
+        return gateUtilizationReq
+
+    def getTerminal(self, ):
+        getTerminalsReqError = True
+
+        while getTerminalsReqError:
+            getTerminalReq, getTerminalsReqError, _ = self.getRequest(
+                url="http://ae31.airline-empires.com/termmarket.php",
+            )
+
+        return getTerminalReq
+
+    def addSlots(self, slotsLeaseData: dict):
+        addSlotsReqError = True
+
+        while addSlotsReqError:
+            _, addSlotsReqError, _ = self.postRequest(
+                url="http://ae31.airline-empires.com/rentgate.php",
+                data=slotsLeaseData
+            )
+
+    def addTerminal(self, buildTerminalData: dict):
+        addTerminalReqError = True
+
+        while addTerminalReqError:
+            _, addTerminalReqError, _ = self.getRequest(
+                url="http://ae31.airline-empires.com/buildterm.php",
+                params=buildTerminalData
+            )
+
+    def addFlight(self, addFlightData: dict, frequency: str):
+        addFlightsReqError = True
+
+        while addFlightsReqError:
+            _, addFlightsReqError, _ = self.postRequest(
+                url="http://ae31.airline-empires.com/route_details.php?city1={}&city2={}".format(
+                    addFlightData["city1"],
+                    addFlightData["city2"]
+                ),
+                data=addFlightData
+            )
+        print("\tAdded {} flight(s)".format(int(frequency)))
