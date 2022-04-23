@@ -11,7 +11,8 @@ class PageParser():
                 rowList.append(td.text)
         return rowList
 
-    def getWorld(self, page: str, airlineDf: pd.DataFrame, airlineCols: dict):
+    def getWorld(self, page: str, airlineCols: dict):
+        airlineDf = pd.DataFrame(columns=airlineCols)
         worldPage = BeautifulSoup(page, 'html.parser')
         htmlWorldList = worldPage.find_all("div","category_block block_wrap")
         for world in htmlWorldList:
@@ -76,7 +77,8 @@ class PageParser():
                 maxRangeEngineSeries = aircraftStats
         return aircraftStatsDf.append(maxRangeEngineSeries, ignore_index=True)
 
-    def getFlightList(self, page: str, flightsCols: list, flightsDf: pd.DataFrame):
+    def getFlightList(self, page: str, flightsCols: list):
+        flightsDf = pd.DataFrame(columns=flightsCols)
         slotsRegex = r"\((\d*).*\)"
         flightListPage = BeautifulSoup(page, 'html.parser')
         flightListTable = flightListPage.find_all("form")[1]

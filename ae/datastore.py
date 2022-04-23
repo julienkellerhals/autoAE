@@ -28,13 +28,11 @@ class Datastore():
 
     def getWorld(self):
         worldReq, worldReqError = self.req.getWorld()
-        airlineDf = self.datastore["airlines"]["airlineDf"]
         airlineCols = self.datastore["airlines"]["airlineCols"]
 
         if not worldReqError:
             airlineDf = self.parser.getWorld(
                 worldReq.text,
-                airlineDf,
                 airlineCols
             )
             self.datastore["airlines"]["airlineDf"] = airlineDf
@@ -47,6 +45,9 @@ class Datastore():
         self.req.enterWorld(serverInfo)
 
     def getAircraftStats(self):
+        aircraftStatsCols = self.datastore["aircraftStats"]["aircraftStatsCols"]
+        self.datastore["aircraftStats"]["aircraftStatsDf"] = pd.DataFrame(columns=aircraftStatsCols)
+
         mainPageReq = self.req.getMainPage()
         airlineDetailsHref = self.parser.getAirlineDetails(mainPageReq.text)
         aircraftReq = self.req.getAircraft(airlineDetailsHref)
@@ -56,7 +57,7 @@ class Datastore():
             aircraftDetailsReq = self.req.getAircraftDetails(aircraft.attrs['href'])
             self.datastore["aircraftStats"]["aircraftStatsDf"] = self.parser.getAircraftDetails(
                 aircraftDetailsReq.text,
-                self.datastore["aircraftStats"]["aircraftStatsCols"],
+                aircraftStatsCols,
                 self.datastore["aircraftStats"]["aircraftStatsDf"],
             )
 
@@ -65,7 +66,6 @@ class Datastore():
         self.datastore["flightsList"]["flightsListDf"] = self.parser.getFlightList(
             flightListReq.text,
             self.datastore["flightsList"]["flightsListCols"],
-            self.datastore["flightsList"]["flightsListDf"]
         )
 
     def getAvailableFlights(self):
@@ -231,7 +231,7 @@ class Datastore():
                         break
                     else:
                         if ((totFreq + availableAircraftRow['frequency']) > availableAircraftRow['avgFreq']):
-                            # case when enought flights were added
+                            # case when enough flights were added
                             addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = (availableAircraftRow['avgFreq'] - totFreq)
                             totFreq += (availableAircraftRow['avgFreq'] - totFreq)
                         else:

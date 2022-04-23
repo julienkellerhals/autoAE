@@ -11,6 +11,7 @@ def constructBlueprint(ds: Datastore) -> Blueprint:
 
     @flightApi.route("/", methods=["GET"])
     def flightPage():
+        ds.getFlights()
         flightList: pd.DataFrame = ds.datastore["flightsList"]["flightsListDf"]
         if "aircraft" in request.args:
             postReqUrl = "/ae/flight/create?aircraft=" + request.args["aircraft"]
@@ -75,7 +76,6 @@ def constructBlueprint(ds: Datastore) -> Blueprint:
             "city": request.values["city"]
         }
         ds.datastore["flightsList"]["searchParams"] = searchParams
-        ds.getFlights()
         return redirect("/ae/flight?aircraft=" + request.args["aircraft"])
 
     return flightApi
