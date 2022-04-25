@@ -27,7 +27,7 @@ class PageParser():
                 worldId = airlineTable.find_all("input")[0].attrs['value'].strip()
                 userId = airlineTable.find_all("input")[1].attrs['value'].strip()
                 link = f"<a href='/ae/airlines/join?world={worldId}&amp;player={userId}'>{name}</a>"
-                airline = pd.Series([
+                airline = pd.DataFrame([[
                     worldName,
                     link,
                     idleAircraft,
@@ -35,8 +35,8 @@ class PageParser():
                     cash,
                     worldId,
                     userId
-                ], index=airlineCols)
-                airlineDf = airlineDf.append(airline, ignore_index=True)
+                ]], columns=airlineCols)
+                airlineDf = pd.concat([airlineDf, airline], ignore_index=True)
         return airlineDf
 
     def getAirlineDetails(self, page: str):
@@ -103,14 +103,14 @@ class PageParser():
                     gatesAvailable = False
                 else:
                     gatesAvailable = True
-                flight = pd.Series([
+                flight = pd.DataFrame([[
                     airport,
                     flightUrl,
                     flightCreated,
                     slots,
                     gatesAvailable
-                ], index=flightsCols)
-                flightsDf = flightsDf.append(flight, ignore_index=True)
+                ]], columns=flightsCols)
+                flightsDf = pd.concat([flightsDf, flight], ignore_index=True)
         return flightsDf
 
     def getFlightDemand(self, page: str):
@@ -178,7 +178,7 @@ class PageParser():
 
             hours = aircraftData[5].text
 
-            aircraft = pd.Series([
+            aircraft = pd.DataFrame([[
                 frequency,
                 aircraftId,
                 aircraftType,
@@ -187,8 +187,8 @@ class PageParser():
                 seatY,
                 reducedCapacity,
                 hours
-            ], index=availableAircraftsCols)
-            availableAircraftsDf = availableAircraftsDf.append(aircraft, ignore_index=True)
+            ]], columns=availableAircraftsCols)
+            availableAircraftsDf = pd.concat([availableAircraftsDf, aircraft], ignore_index=True)
 
         return availableAircraftsDf
 
