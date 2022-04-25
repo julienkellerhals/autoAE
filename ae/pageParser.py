@@ -61,21 +61,25 @@ class PageParser():
 
         engineInfoTable = aircraftDetailPage.find_all("table")[-1]
 
-        maxRangeEngineSeries = pd.Series(['',0,0], index=aircraftStatsCols)
+        maxRangeEngineSeries = pd.DataFrame([[
+            '',
+            0,
+            0
+        ]], columns=aircraftStatsCols)
         for tr in engineInfoTable.find_all('tr')[1:]:
             engineTableRow = self.trToList(tr)
             engineRange = int(re.sub(r' mi.*', '', engineTableRow[7]).replace(',',''))
             engineMinRunway = int(engineTableRow[9].replace(',',''))
 
-            aircraftStats = pd.Series([
+            aircraftStats = pd.DataFrame([[
                 link,
                 engineRange,
                 engineMinRunway
-            ], index=aircraftStatsCols)
+            ]], columns=aircraftStatsCols)
 
-            if maxRangeEngineSeries['range'] < aircraftStats['range']:
+            if maxRangeEngineSeries['range'].values[0] < aircraftStats['range'].values[0]:
                 maxRangeEngineSeries = aircraftStats
-        return aircraftStatsDf.append(maxRangeEngineSeries, ignore_index=True)
+        return pd.concat([aircraftStatsDf, maxRangeEngineSeries], ignore_index=True)
 
     def getFlightList(self, page: str, flightsCols: list):
         flightsDf = pd.DataFrame(columns=flightsCols)
