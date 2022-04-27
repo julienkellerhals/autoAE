@@ -10,3 +10,4 @@ output.html
 /flightRequest.csv
 /workspace.code-workspace
 /phpSessionReq.pickle
+*.cookies
