@@ -110,6 +110,7 @@ class AeRequest():
             bool: login state
         """
         self.getSessionCookies()
+        self.fixCookies = False
 
         loginReqError = True
 
@@ -144,6 +145,7 @@ class AeRequest():
 
         if self.loginCookies is not None:
             self.reqCookies = self.loginCookies
+        self.fixCookies = False
 
         worldReqError = True
 
@@ -159,6 +161,7 @@ class AeRequest():
 
     def enterWorld(self, serverInfo: dict):
         enterWorldReqError = True
+
         while enterWorldReqError:
             # enter world and get php session
             _, enterWorldReqError, _ = self.postRequest(
@@ -166,10 +169,21 @@ class AeRequest():
                     "?app=ae&module=gameworlds&section=enterworld",
                 data=serverInfo
             )
+
         self.fixCookies = True
+        with open("world.cookies", "wb") as f:
+            pickle.dump(self.reqCookies, f)
+
+    def checkWorldCookies(self):
+        if self.reqCookies is None:
+            with open("world.cookies", "rb") as f:
+                self.reqCookies = pickle.load(f)
+            self.fixCookies = True
 
     def getMainPage(self):
+        self.checkWorldCookies()
         mainPageReqError = True
+
         while mainPageReqError:
             mainPageReq, mainPageReqError, _ = self.getRequest(
                 url="http://ae31.airline-empires.com/main.php",
@@ -178,7 +192,9 @@ class AeRequest():
         return mainPageReq
 
     def getAircraft(self, airlineDetailsHref: str):
+        self.checkWorldCookies()
         getAircraftReqError = True
+
         while getAircraftReqError:
             getAircraftReq, getAircraftReqError, _ = self.getRequest(
                 url=("http://ae31.airline-empires.com/" + airlineDetailsHref),
@@ -187,6 +203,7 @@ class AeRequest():
         return getAircraftReq
 
     def getAircraftDetails(self, aircraftLink: str):
+        self.checkWorldCookies()
         aircraftDetailReqError = True
 
         while aircraftDetailReqError:
@@ -197,6 +214,7 @@ class AeRequest():
         return getAircraftDetailReq
 
     def getFlightList(self, searchParams: dict):
+        self.checkWorldCookies()
         flightsListReqError = True
 
         while flightsListReqError:
