@@ -1,3 +1,4 @@
+import pickle
 import requests
 from flask import flash
 
@@ -6,6 +7,7 @@ class AeRequest():
     """AE Request class
     """
     reqCookies = None
+    loginCookies = None
     fixCookies = False
 
     def getRequest(self, url: str, params=None):
@@ -91,6 +93,7 @@ class AeRequest():
         """
         # get page session id
         sessionReqError = True
+
         while sessionReqError:
             flash("Getting homepage cookies ...")
             _, sessionReqError, _ = self.getRequest(
@@ -106,10 +109,10 @@ class AeRequest():
         Returns:
             bool: login state
         """
-        if self.reqCookies is None:
-            self.getSessionCookies()
+        self.getSessionCookies()
 
         loginReqError = True
+
         # do login
         for _ in range(5):
             print("Logging in ...")
@@ -119,6 +122,9 @@ class AeRequest():
                 data=user
             )
             if not loginReqError:
+                with open("login.cookies", "wb") as f:
+                    pickle.dump(self.reqCookies, f)
+                self.loginCookies = self.reqCookies
                 return True
 
         flash("Error while login in", "error")
@@ -131,7 +137,16 @@ class AeRequest():
             worldReq: world page
             worldReqError: world request error boolean
         """
+        if self.reqCookies is None:
+            with open("login.cookies", "rb") as f:
+                self.reqCookies = pickle.load(f)
+            self.loginCookies = self.reqCookies
+
+        if self.loginCookies is not None:
+            self.reqCookies = self.loginCookies
+
         worldReqError = True
+
         # get worlds
         while worldReqError:
             worldReq, worldReqError, errorCode = self.getRequest(
@@ -234,8 +249,8 @@ class AeRequest():
         while availableAircraftsReqError:
             availableAircraftsReq, availableAircraftsReqError, _ = self.postRequest(
                 url="http://ae31.airline-empires.com/route_details.php?city1={}&city2={}".format(
-                    route['city1'],
-                    route['city2']
+                    route["city1"],
+                    route["city2"]
                 ),
                 data=route
             )
