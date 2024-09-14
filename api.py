@@ -6,9 +6,10 @@ import math
 import cred
 import pandas as pd
 import numpy as np
-import time
 
 # helper function
+
+
 def TrToList(tr):
     rowList = []
     for td in tr:
@@ -16,12 +17,11 @@ def TrToList(tr):
             rowList.append(td.text)
     return rowList
 
+
 def getRequest(url, cookies=None, params=None):
     r = None
     reqError = True
     errorCode = None
-    if cookies is not None:
-        print(dict(cookies))
     try:
         r = requests.get(
             url=url,
@@ -44,6 +44,7 @@ def getRequest(url, cookies=None, params=None):
         print("connection error")
         print(e)
     return r, reqError, errorCode
+
 
 def postRequest(url, cookies, data):
     r = None
@@ -72,6 +73,7 @@ def postRequest(url, cookies, data):
         print(e)
     return r, reqError, errorCode
 
+
 def getPageSession():
     # get page session id
     sessionReqError = True
@@ -81,6 +83,7 @@ def getPageSession():
             url="http://www.airline-empires.com/index.php?/page/home.html"
         )
     return forumSessidReq
+
 
 def login(forumSessidReq, username, password):
     loginReqError = True
@@ -96,6 +99,7 @@ def login(forumSessidReq, username, password):
         )
     return loginReq
 
+
 def getWorld(loginReq):
     worldReqError = True
     airlineCols = [
@@ -108,6 +112,7 @@ def getWorld(loginReq):
         "userId"
     ]
     airlineDf = pd.DataFrame(columns=airlineCols)
+
     # get worlds
     while worldReqError:
         worldReq, worldReqError, errorCode = getRequest(
@@ -116,21 +121,26 @@ def getWorld(loginReq):
         )
         if (errorCode == 401):
             break
+
     if not worldReqError:
         print("logged in with user: {}".format(cred.user['ips_username']))
         worldPage = BeautifulSoup(worldReq.text, 'html.parser')
-        htmlWorldList = worldPage.find_all("div","category_block block_wrap")
+        htmlWorldList = worldPage.find_all("div", "category_block block_wrap")
         for world in htmlWorldList:
-            worldName = world.find("h3","maintitle").text
+            worldName = world.find("h3", "maintitle").text
             worldTable = world.find("table")
             airlinesTable = worldTable.find_all("tr", "row1")
+
             for airlineTable in airlinesTable:
                 airlineName = airlineTable.find_all("td")[2].text.strip()
                 airlineIdleAircraft = airlineTable.find_all("td")[5].text
                 airlineDOP = airlineTable.find_all("td")[7].text
                 airlineCash = airlineTable.find_all("td")[8].text
-                airlineWorldId = airlineTable.find_all("input")[0].attrs['value'].strip()
-                airlineUserId = airlineTable.find_all("input")[1].attrs['value'].strip()
+                airlineWorldId = airlineTable.find_all(
+                    "input")[0].attrs['value'].strip()
+                airlineUserId = airlineTable.find_all(
+                    "input")[1].attrs['value'].strip()
+
                 airline = pd.Series([
                     worldName,
                     airlineName,
@@ -140,7 +150,8 @@ def getWorld(loginReq):
                     airlineWorldId,
                     airlineUserId
                 ], index=airlineCols)
-                airlineDf = airlineDf.append(airline, ignore_index=True)
+                airlineDf = pd.concat([airlineDf, airline.to_frame().T])
+
         print(airlineDf.to_string(columns=[
             "worldName",
             "name",
@@ -148,19 +159,18 @@ def getWorld(loginReq):
             "DOP",
             "cash"
         ], index=False))
+
     return worldReq, airlineDf, worldReqError
 
-def doLogin(args, forumSessidReq):
+
+def doLogin(forumSessidReq, username, password):
     loginError = True
     while loginError:
-        # get password and login
-        username = userInput.setVar(args, "username", "Please enter username: ")
-        password = userInput.setVar(args, "password")
         loginReq = login(forumSessidReq, username, password)
-
-        # get world to join
         worldReq, airlineDf, loginError = getWorld(loginReq)
+
     return worldReq, airlineDf
+
 
 def enterWorld(worldReq, gameServer):
     phpSessidReqError = True
@@ -173,13 +183,17 @@ def enterWorld(worldReq, gameServer):
         )
     return phpSessidReq
 
+
 def doEnterWorld(args, airlineDf, worldReq):
     tryServer = True
     while tryServer:
-        airlineName = userInput.setVar(args, "airline", "Please enter one of above mentioned airline names: ")
+        airlineName = userInput.setVar(
+            args, "airline", "Please enter one of above mentioned airline names: ")
         # TODO Problem if airline has the same name on different server
-        worldId = airlineDf[['worldId']].loc[airlineDf['name'] == airlineName].to_string(header=False, index=False).strip()
-        userId = airlineDf[['userId']].loc[airlineDf['name'] == airlineName].to_string(header=False, index=False).strip()
+        worldId = airlineDf[['worldId']].loc[airlineDf['name'] ==
+                                             airlineName].to_string(header=False, index=False).strip()
+        userId = airlineDf[['userId']].loc[airlineDf['name'] == airlineName].to_string(
+            header=False, index=False).strip()
         if ('Empty DataFrame' not in worldId and 'Empty DataFrame' not in userId):
             tryServer = False
         else:
@@ -188,13 +202,14 @@ def doEnterWorld(args, airlineDf, worldReq):
         "world": worldId,
         "userid": userId
     }
-    
+
     # enter world
-    print("entering world {} with {}".format(worldId,airlineName))
+    print("entering world {} with {}".format(worldId, airlineName))
     phpSessidReq = enterWorld(worldReq, gameServer)
     return phpSessidReq
 
-def getAircraftStats(phpSessidReq):
+
+def getAircraftStats(session_id: str):
     mainPageReqError = True
     getAircraftsReqError = True
     aircraftStatsCol = [
@@ -207,39 +222,44 @@ def getAircraftStats(phpSessidReq):
     while mainPageReqError:
         mainPageReq, mainPageReqError, _ = getRequest(
             url="http://ae31.airline-empires.com/main.php",
-            cookies=phpSessidReq.cookies
+            cookies={"PHPSESSID": session_id}
         )
     mainPage = BeautifulSoup(mainPageReq.text, 'lxml')
-    airlineDetailsHref = mainPage.find('a', text="Airline Details").attrs['href']
-
+    airlineDetailsHref = mainPage.find(
+        'a', text="Airline Details").attrs['href']
 
     while getAircraftsReqError:
         getAircraftsReq, getAircraftsReqError, _ = getRequest(
             url=("http://ae31.airline-empires.com/" + airlineDetailsHref),
-            cookies=phpSessidReq.cookies
+            cookies={"PHPSESSID": session_id}
         )
-    
+
     aircraftListPage = BeautifulSoup(getAircraftsReq.text, 'lxml')
-    aircraftHrefList = aircraftListPage.find_all("a", href = re.compile(r'acdata.php\?aircraft*'))
+    aircraftHrefList = aircraftListPage.find_all(
+        "a", href=re.compile(r'acdata.php\?aircraft*'))
     dedupAircraftHrefList = list(dict.fromkeys(aircraftHrefList))
+
     for aircraftHref in dedupAircraftHrefList:
         aircraftDetailReqError = True
 
         while aircraftDetailReqError:
             getAircraftDetailReq, aircraftDetailReqError, _ = getRequest(
-                url=("http://ae31.airline-empires.com/" + aircraftHref.attrs['href']),
-                cookies=phpSessidReq.cookies
+                url=("http://ae31.airline-empires.com/" +
+                     aircraftHref.attrs['href']),
+                cookies={"PHPSESSID": session_id}
             )
 
         aircraftDetailPage = BeautifulSoup(getAircraftDetailReq.text, 'lxml')
-        aircraftName = aircraftDetailPage.find_all("div", class_="pagetitle")[0].text.replace(" Aircraft Information", '')
+        aircraftName = aircraftDetailPage.find_all("div", class_="pagetitle")[
+            0].text.replace(" Aircraft Information", '')
         engineInfoTable = aircraftDetailPage.find_all("table")[-1]
 
-        maxRangeEngineSeries = pd.Series(['',0,0], index=aircraftStatsCol)
+        maxRangeEngineSeries = pd.Series(['', 0, 0], index=aircraftStatsCol)
         for tr in engineInfoTable.find_all('tr')[1:]:
             engineTableRow = TrToList(tr)
-            engineRange = int(re.sub(r' mi.*', '', engineTableRow[7]).replace(',',''))
-            engineMinRunway = int(engineTableRow[9].replace(',',''))
+            engineRange = int(
+                re.sub(r' mi.*', '', engineTableRow[7]).replace(',', ''))
+            engineMinRunway = int(engineTableRow[9].replace(',', ''))
 
             aircraftStats = pd.Series([
                 aircraftName,
@@ -249,10 +269,12 @@ def getAircraftStats(phpSessidReq):
 
             if maxRangeEngineSeries['range'] < aircraftStats['range']:
                 maxRangeEngineSeries = aircraftStats
-        aircraftStatsDf = aircraftStatsDf.append(maxRangeEngineSeries, ignore_index=True)
+        aircraftStatsDf = pd.concat(
+            [aircraftStatsDf, maxRangeEngineSeries.to_frame().T])
     return aircraftStatsDf
 
-def getFlights(phpSessidReq, searchParams):
+
+def getFlights(session_id: str, searchParams: str):
     listFlightsReqError = True
     slotsRegex = r"\((\d*).*\)"
     flightsCols = [
@@ -267,7 +289,7 @@ def getFlights(phpSessidReq, searchParams):
     while listFlightsReqError:
         listFlightsReq, listFlightsReqError, _ = getRequest(
             url="http://ae31.airline-empires.com/rentgate.php",
-            cookies=phpSessidReq.cookies,
+            cookies={"PHPSESSID": session_id},
             params=searchParams
         )
     flightListPage = BeautifulSoup(listFlightsReq.text, 'html.parser')
@@ -278,15 +300,17 @@ def getFlights(phpSessidReq, searchParams):
         try:
             flightUrl = flightRow.find_all("td")[5].find("a").attrs['href']
         except AttributeError as e:
-            print("Flight from {} to {} cannot be researched".format(searchParams["city"], airport))
+            print("Flight from {} to {} cannot be researched".format(
+                searchParams["city"], airport))
             print(e)
         else:
             if (flightRow.find_all("td")[5].find("div") == None):
                 flightCreated = False
             else:
-                flightCreated  = True    
+                flightCreated = True
             try:
-                slots = re.search(slotsRegex, flightRow.find_all("td")[6].text).group(1)
+                slots = re.search(
+                    slotsRegex, flightRow.find_all("td")[6].text).group(1)
             except AttributeError:
                 slots = None
             if (flightRow.find_all("td")[10].find("input") == None):
@@ -300,22 +324,24 @@ def getFlights(phpSessidReq, searchParams):
                 slots,
                 gatesAvailable
             ], index=flightsCols)
-            flightsDf = flightsDf.append(flight, ignore_index=True)
+            flightsDf = pd.concat([flightsDf, flight.to_frame().T])
     return listFlightsReq, flightsDf
 
-def getFlightDemand(phpSessidReq, flight):
-    if (re.match(r"\w{3}",flight['airport']) != None):
+
+def getFlightDemand(session_id: str, flight):
+    if (re.match(r"\w{3}", flight['airport']) != None):
         flightDetailsReqError = True
         while flightDetailsReqError:
             # flight details
             flightDetailsReq, flightDetailsReqError, _ = getRequest(
                 url="http://ae31.airline-empires.com/" + flight['flightUrl'],
-                cookies=phpSessidReq.cookies
+                cookies={"PHPSESSID": session_id},
             )
         routeDetailsPage = BeautifulSoup(flightDetailsReq.text, 'html.parser')
         highChartsScript = str(routeDetailsPage.findAll('script')[10])
         rawData = re.findall(r"data: \[\d*,\d*,\d*\]", highChartsScript)[0]
-        flightDemand = [int(x) for x in re.findall(r"\d*,\d*,\d*", rawData)[0].split(',')]
+        flightDemand = [int(x) for x in re.findall(
+            r"\d*,\d*,\d*", rawData)[0].split(',')]
         print()
         print("{:20} {:10} {:10} {:10}".format(
             flight['airport'],
@@ -324,10 +350,11 @@ def getFlightDemand(phpSessidReq, flight):
             flightDemand[2])
         )
     else:
-        flightDemand = [0,0,0]
+        flightDemand = [0, 0, 0]
     return flightDemand
 
-def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapacityFlag, autoSlots, autoTerminal, minFreq, maxFreq, flight):
+
+def createFlight(session_id: str, depAirportCode, aircraftTypeFilter, reducedCapacityFlag, autoSlots, autoTerminal, minFreq, maxFreq, flight):
     availableAircraftsReqError = True
     availableAircraftsCols = [
         "frequency",
@@ -341,7 +368,7 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
     ]
     availableAircraftsDf = pd.DataFrame(columns=availableAircraftsCols)
 
-    flightDemand = getFlightDemand(phpSessidReq, flight)
+    flightDemand = getFlightDemand(session_id, flight)
 
     # aircraft details
     routeAircraftPostData = {
@@ -362,31 +389,37 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
                 routeAircraftPostData['city1'],
                 routeAircraftPostData['city2']
             ),
-            cookies=phpSessidReq.cookies,
+            cookies={"PHPSESSID": session_id},
             data=routeAircraftPostData
         )
-    availableAircraftsPage = BeautifulSoup(availableAircraftsReq.text, 'html.parser')
+    availableAircraftsPage = BeautifulSoup(
+        availableAircraftsReq.text, 'html.parser')
     newFlightsPage = availableAircraftsPage.find("div", {"id": "newflights"})
-    availableAircraftsTable = newFlightsPage.find("td",text="Type").parent.parent.find_all("tr", recursive=False)[1:]
-    
+    availableAircraftsTable = newFlightsPage.find(
+        "td", text="Type").parent.parent.find_all("tr", recursive=False)[1:]
+
     for availableAircraftRow in availableAircraftsTable:
         aircraftData = availableAircraftRow.find_all('td', recursive=False)
         if (aircraftData[0].text == 'You do not have any aircraft available to serve this route.'):
-            print("You do not have any aircraft available to serve this route. (May also be a bug in AE code)")
+            print(
+                "You do not have any aircraft available to serve this route. (May also be a bug in AE code)")
         else:
             frequency = aircraftData[0].find_all('option')[-1:][0].text
         aircraftId = aircraftData[1].text
         aircraftType = aircraftData[2].text
         try:
-            seatF = int(aircraftData[3].find_all('td')[-3:-2][0].text.strip(' F'))
+            seatF = int(aircraftData[3].find_all(
+                'td')[-3:-2][0].text.strip(' F'))
         except IndexError:
             seatF = 0
         try:
-            seatC = int(aircraftData[3].find_all('td')[-2:-1][0].text.strip(' C'))
+            seatC = int(aircraftData[3].find_all(
+                'td')[-2:-1][0].text.strip(' C'))
         except IndexError:
             seatC = 0
         try:
-            seatY = int(aircraftData[3].find_all('td')[-1:][0].text.strip(' Y'))
+            seatY = int(aircraftData[3].find_all(
+                'td')[-1:][0].text.strip(' Y'))
         except IndexError:
             seatY = 0
         if (aircraftData[4].find_all('span') == []):
@@ -404,10 +437,12 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
             reducedCapacity,
             hours
         ], index=availableAircraftsCols)
-        availableAircraftsDf = availableAircraftsDf.append(aircraft, ignore_index=True)
-    
+        availableAircraftsDf = availableAircraftsDf.append(
+            aircraft, ignore_index=True)
+
     # type conversion
-    availableAircraftsDf['frequency'] = availableAircraftsDf['frequency'].astype(int)
+    availableAircraftsDf['frequency'] = availableAircraftsDf['frequency'].astype(
+        int)
     availableAircraftsDf['seatF'] = availableAircraftsDf['seatF'].astype(int)
     availableAircraftsDf['seatC'] = availableAircraftsDf['seatC'].astype(int)
     availableAircraftsDf['seatY'] = availableAircraftsDf['seatY'].astype(int)
@@ -415,7 +450,8 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
 
     # find correct aircraft
     if (aircraftTypeFilter != ''):
-        availableAircraftsDf = availableAircraftsDf.loc[availableAircraftsDf['type'] == aircraftTypeFilter]
+        availableAircraftsDf = availableAircraftsDf.loc[availableAircraftsDf['type']
+                                                        == aircraftTypeFilter]
         if availableAircraftsDf.empty:
             print("No aircraft of this type available for this route")
     if (reducedCapacityFlag == 'n'):
@@ -424,18 +460,25 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
             print("No aircraft available for this route")
 
     # find required frequency compared to the demand
-    flightDemandSeries = pd.Series(flightDemand, index=['seatReqF','seatReqC','seatReqY'])
+    flightDemandSeries = pd.Series(
+        flightDemand, index=['seatReqF', 'seatReqC', 'seatReqY'])
     flightDemandSeries = flightDemandSeries*7
     availableAircraftsDf['seatReqF'] = flightDemandSeries['seatReqF']
     availableAircraftsDf['seatReqC'] = flightDemandSeries['seatReqC']
     availableAircraftsDf['seatReqY'] = flightDemandSeries['seatReqY']
-    availableAircraftsDf['freqF'] = availableAircraftsDf['seatReqF'] / availableAircraftsDf['seatF']
-    availableAircraftsDf['freqC'] = availableAircraftsDf['seatReqC'] / availableAircraftsDf['seatC']
-    availableAircraftsDf['freqY'] = availableAircraftsDf['seatReqY'] / availableAircraftsDf['seatY']
-    availableAircraftsDf = availableAircraftsDf.replace([np.inf, -np.inf], np.nan)
-    availableAircraftsDf['avgFreq'] = availableAircraftsDf[['freqF','freqC','freqY']].mean(axis=1) + 0.5
+    availableAircraftsDf['freqF'] = availableAircraftsDf['seatReqF'] / \
+        availableAircraftsDf['seatF']
+    availableAircraftsDf['freqC'] = availableAircraftsDf['seatReqC'] / \
+        availableAircraftsDf['seatC']
+    availableAircraftsDf['freqY'] = availableAircraftsDf['seatReqY'] / \
+        availableAircraftsDf['seatY']
+    availableAircraftsDf = availableAircraftsDf.replace(
+        [np.inf, -np.inf], np.nan)
+    availableAircraftsDf['avgFreq'] = availableAircraftsDf[[
+        'freqF', 'freqC', 'freqY']].mean(axis=1) + 0.5
     # availableAircraftsDf[['avgFreq']].loc[availableAircraftsDf['avgFreq'] < availableAircraftsDf['freqY']](availableAircraftsDf[['freqY']].loc[availableAircraftsDf['avgFreq'] < availableAircraftsDf['freqY']])
-    availableAircraftsDf['avgFreq'] = availableAircraftsDf['avgFreq'].apply(np.ceil)
+    availableAircraftsDf['avgFreq'] = availableAircraftsDf['avgFreq'].apply(
+        np.ceil)
 
     # get prices and ifs
     flightInfo = newFlightsPage.find('div', 'prices')
@@ -458,11 +501,12 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
                     pass
         except:
             for allFlightIFS in flightInfo.find_all("a"):
-                flightInfoIFS.append(allFlightIFS.attrs['href'].split('id=')[-1:][0])
+                flightInfoIFS.append(
+                    allFlightIFS.attrs['href'].split('id=')[-1:][0])
 
         # find planes to use
         availableAircraftsDf = availableAircraftsDf.sort_values('hours')
-        if not availableAircraftsDf.empty: 
+        if not availableAircraftsDf.empty:
             print(availableAircraftsDf)
         totPassengerY = 0
         totFreq = 0
@@ -489,31 +533,34 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
             if (minFreq != ''):
                 if (availableAircraftRow['avgFreq'] < int(minFreq)):
                     minFreqCheck = False
-                    print("\t{} exceeded min defined frequency. No flights were added".format(availableAircraftRow['type']))
+                    print("\t{} exceeded min defined frequency. No flights were added".format(
+                        availableAircraftRow['type']))
                     if (aircraftTypeFilter != ''):
                         break
             if (maxFreq != ''):
                 if (availableAircraftRow['avgFreq'] > int(maxFreq)):
                     maxFreqCheck = False
-                    print("\t{} exceeded max defined frequency. No flights were added".format(availableAircraftRow['type']))
+                    print("\t{} exceeded max defined frequency. No flights were added".format(
+                        availableAircraftRow['type']))
                     if (aircraftTypeFilter != ''):
                         break
-            
+
             if minFreqCheck and maxFreqCheck:
                 if (availableAircraftRow['frequency'] >= availableAircraftRow['avgFreq']):
                     # case when required frequency less than available
-                    addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['avgFreq']
+                    addFlightsPostData["freq_" + availableAircraftRow['aircraft']
+                                       ] = availableAircraftRow['avgFreq']
 
                     # check slots
                     oriSlotsAvailable = checkOriSlots(
-                        phpSessidReq,
+                        session_id,
                         autoSlots,
                         autoTerminal,
                         depAirportCode
                     )
 
                     tgtSlotsAvailable = checkTgtSlots(
-                        phpSessidReq,
+                        session_id,
                         autoSlots,
                         autoTerminal,
                         flight['airport'],
@@ -525,7 +572,7 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
                     if oriSlotsAvailable & tgtSlotsAvailable:
                         # add flight
                         addFlight(
-                            phpSessidReq,
+                            session_id,
                             routeAircraftPostData['city1'],
                             routeAircraftPostData['city2'],
                             addFlightsPostData,
@@ -535,26 +582,29 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
                 else:
                     if ((totFreq + availableAircraftRow['frequency']) > availableAircraftRow['avgFreq']):
                         # case when enought flights were added
-                        addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = (availableAircraftRow['avgFreq'] - totFreq)
+                        addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = (
+                            availableAircraftRow['avgFreq'] - totFreq)
                         totFreq += (availableAircraftRow['avgFreq'] - totFreq)
                     else:
                         # continue adding flights
-                        addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = availableAircraftRow['frequency']
+                        addFlightsPostData["freq_" + availableAircraftRow['aircraft']
+                                           ] = availableAircraftRow['frequency']
                         totFreq += availableAircraftRow['frequency']
-                    totPassengerY += (availableAircraftRow['seatY'] * availableAircraftRow['frequency'])
+                    totPassengerY += (availableAircraftRow['seatY']
+                                      * availableAircraftRow['frequency'])
                     # check if the demand is meat (only checks Economy)
                     if (totPassengerY >= flightDemandSeries['seatReqY']):
 
                         # check slots, see func
                         oriSlotsAvailable = checkOriSlots(
-                            phpSessidReq,
+                            session_id,
                             autoSlots,
                             autoTerminal,
                             depAirportCode
                         )
 
                         tgtSlotsAvailable = checkTgtSlots(
-                            phpSessidReq,
+                            session_id,
                             autoSlots,
                             autoTerminal,
                             flight['airport'],
@@ -566,7 +616,7 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
                         if oriSlotsAvailable & tgtSlotsAvailable:
                             # add flight
                             addFlight(
-                                phpSessidReq,
+                                session_id,
                                 routeAircraftPostData['city1'],
                                 routeAircraftPostData['city2'],
                                 addFlightsPostData,
@@ -576,7 +626,8 @@ def createFlight(phpSessidReq, depAirportCode, aircraftTypeFilter, reducedCapaci
     else:
         print("Error in page (no flights dispayed / available)")
 
-def checkOriSlots(phpSessidReq, autoSlots, autoTerminal, airport):
+
+def checkOriSlots(session_id: str, autoSlots, autoTerminal, airport):
     mainPageReqError = True
     gateUtilisationReqError = True
     getTerminalsReqError = True
@@ -586,28 +637,33 @@ def checkOriSlots(phpSessidReq, autoSlots, autoTerminal, airport):
     while mainPageReqError:
         mainPageReq, mainPageReqError, _ = getRequest(
             url="http://ae31.airline-empires.com/main.php",
-            cookies=phpSessidReq.cookies
+            cookies={"PHPSESSID": session_id}
         )
     mainPage = BeautifulSoup(mainPageReq.text, 'html.parser')
-    airlineDetailsHref = mainPage.find('a', text="Airline Details").attrs['href']
+    airlineDetailsHref = mainPage.find(
+        'a', text="Airline Details").attrs['href']
 
     while gateUtilisationReqError:
         gateUtilisationReq, gateUtilisationReqError, _ = getRequest(
             url=("http://ae31.airline-empires.com/" + airlineDetailsHref),
-            cookies=phpSessidReq.cookies
+            cookies={"PHPSESSID": session_id}
         )
     gateUtilisationPage = BeautifulSoup(gateUtilisationReq.text, 'lxml')
     # TODO implement part when there is no bought slot from this airport
     gateUtilisationTable = gateUtilisationPage.find(id='airline_airport_list')
-    gateTableHeaders = TrToList(gateUtilisationTable.find_all('tr')[0].findAll('td'))
+    gateTableHeaders = TrToList(
+        gateUtilisationTable.find_all('tr')[0].findAll('td'))
     gateTableRowList = []
     for tr in gateUtilisationTable.find_all('tr')[1:]:
         gateTableRow = TrToList(tr)
         gateTableRowList.append(dict(zip(gateTableHeaders, gateTableRow)))
     gateUtilisationDf = pd.DataFrame(gateTableRowList)
-    gateUtilisationDf = gateUtilisationDf.astype(dict(zip(gateTableHeaders, ['str','str','int','str'])))
-    gateAmount = gateUtilisationDf.loc[gateUtilisationDf['Code'] == airport]['Gates'] + 5
-    gateUtilisation = int(gateUtilisationDf.loc[gateUtilisationDf['Code'] == airport]['Utilization'].to_string(index=False).lstrip().split('%')[0])
+    gateUtilisationDf = gateUtilisationDf.astype(
+        dict(zip(gateTableHeaders, ['str', 'str', 'int', 'str'])))
+    gateAmount = gateUtilisationDf.loc[gateUtilisationDf['Code']
+                                       == airport]['Gates'] + 5
+    gateUtilisation = int(gateUtilisationDf.loc[gateUtilisationDf['Code'] == airport]['Utilization'].to_string(
+        index=False).lstrip().split('%')[0])
 
     # Terminal buying threshold
     if (gateUtilisation >= 80):
@@ -616,7 +672,7 @@ def checkOriSlots(phpSessidReq, autoSlots, autoTerminal, airport):
             while getTerminalsReqError:
                 getTerminalReq, getTerminalsReqError, _ = getRequest(
                     url="http://ae31.airline-empires.com/termmarket.php",
-                    cookies=phpSessidReq.cookies
+                    cookies={"PHPSESSID": session_id}
                 )
             getTerminalPage = BeautifulSoup(getTerminalReq.text, 'html.parser')
             buildTerminalData = {
@@ -628,15 +684,17 @@ def checkOriSlots(phpSessidReq, autoSlots, autoTerminal, airport):
             while addTerminalReqError:
                 _, addTerminalReqError, _ = getRequest(
                     url="http://ae31.airline-empires.com/buildterm.php",
-                    cookies=phpSessidReq.cookies,
+                    cookies={"PHPSESSID": session_id},
                     params=buildTerminalData
                 )
             slotsAvailable = True
         else:
-            print("Automatically buy termial option is off. Flight may not be created due to slot restrictions!")
+            print(
+                "Automatically buy termial option is off. Flight may not be created due to slot restrictions!")
     return slotsAvailable
 
-def checkTgtSlots(phpSessidReq, autoSlots, autoTerminal, airport, airportSlots, flightReqSlots, gatesAvailable):
+
+def checkTgtSlots(session_id, autoSlots, autoTerminal, airport, airportSlots, flightReqSlots, gatesAvailable):
     addSlotsReqError = True
     getTerminalsReqError = True
     addTerminalReqError = True
@@ -660,7 +718,7 @@ def checkTgtSlots(phpSessidReq, autoSlots, autoTerminal, airport, airportSlots, 
                 while addSlotsReqError:
                     _, addSlotsReqError, _ = postRequest(
                         url="http://ae31.airline-empires.com/rentgate.php",
-                        cookies=phpSessidReq.cookies,
+                        cookies={"PHPSESSID": session_id},
                         data=slotsLeaseData
                     )
                 slotsAvailable = True
@@ -669,12 +727,14 @@ def checkTgtSlots(phpSessidReq, autoSlots, autoTerminal, airport, airportSlots, 
                     while getTerminalsReqError:
                         getTerminalReq, getTerminalsReqError, _ = getRequest(
                             url="http://ae31.airline-empires.com/termmarket.php",
-                            cookies=phpSessidReq.cookies
+                            cookies={"PHPSESSID": session_id}
                         )
-                    getTerminalPage = BeautifulSoup(getTerminalReq.text, 'html.parser')
+                    getTerminalPage = BeautifulSoup(
+                        getTerminalReq.text, 'html.parser')
                     # Not safe, redo
                     try:
-                        gateAmount = int(getTerminalPage.find(text=airport).next.next.next) + 5
+                        gateAmount = int(getTerminalPage.find(
+                            text=airport).next.next.next) + 5
                     except AttributeError:
                         gateAmount = 5
                     buildTerminalData = {
@@ -686,7 +746,7 @@ def checkTgtSlots(phpSessidReq, autoSlots, autoTerminal, airport, airportSlots, 
                     while addTerminalReqError:
                         _, addTerminalReqError, _ = getRequest(
                             url="http://ae31.airline-empires.com/buildterm.php",
-                            cookies=phpSessidReq.cookies,
+                            cookies={"PHPSESSID": session_id},
                             params=buildTerminalData
                         )
                     slotsAvailable = True
@@ -695,7 +755,8 @@ def checkTgtSlots(phpSessidReq, autoSlots, autoTerminal, airport, airportSlots, 
                 slotsAvailable = False
     return slotsAvailable
 
-def addHub(phpSessidReq, airport):
+
+def addHub(session_id: str, airport):
     addTerminalReqError = True
     addHubReqError = True
     buildTerminalData = {
@@ -707,10 +768,10 @@ def addHub(phpSessidReq, airport):
     while addTerminalReqError:
         _, addTerminalReqError, _ = getRequest(
             url="http://ae31.airline-empires.com/buildterm.php",
-            cookies=phpSessidReq.cookies,
+            cookies={"PHPSESSID": session_id},
             params=buildTerminalData
         )
-    
+
     addHubData = {
         "hub": airport,
         "hubaction": "Open+Hub"
@@ -718,11 +779,12 @@ def addHub(phpSessidReq, airport):
     while addHubReqError:
         _, addHubReqError, _ = getRequest(
             url="http://ae31.airline-empires.com/newhub.php",
-            cookies=phpSessidReq.cookies,
+            cookies={"PHPSESSID": session_id},
             params=addHubData
         )
 
-def addFlight(phpSessidReq, city1, city2, addFlightsPostData, frequency):
+
+def addFlight(session_id, city1, city2, addFlightsPostData, frequency):
     addFlightsReqError = True
     while addFlightsReqError:
         _, addFlightsReqError, _ = postRequest(
@@ -730,12 +792,13 @@ def addFlight(phpSessidReq, city1, city2, addFlightsPostData, frequency):
                 city1,
                 city2
             ),
-            cookies=phpSessidReq.cookies,
+            cookies={"PHPSESSID": session_id},
             data=addFlightsPostData
         )
     print("\tAdded {} flight(s)".format(int(frequency)))
 
-def getRoutes(phpSessidReq, startIdx):
+
+def getRoutes(session_id, startIdx):
     routesCols = [
         "routeId",
         "city1",
@@ -756,8 +819,9 @@ def getRoutes(phpSessidReq, startIdx):
     getRoutesReqError = True
     while getRoutesReqError:
         getRoutesReq, getRoutesReqError, _ = getRequest(
-            url="http://ae31.airline-empires.com/routes.php?city=all&order=desc&arr_dep=all&next={}".format(startIdx),
-            cookies=phpSessidReq.cookies
+            url="http://ae31.airline-empires.com/routes.php?city=all&order=desc&arr_dep=all&next={}".format(
+                startIdx),
+            cookies={"PHPSESSID": session_id}
         )
     getRoutesPage = BeautifulSoup(getRoutesReq.text, 'html.parser')
     routes = getRoutesPage.find_all("form", id="routes")
@@ -812,7 +876,8 @@ def getRoutes(phpSessidReq, startIdx):
         routesDf = routesDf.append(routeSeries, ignore_index=True)
     return routesDf
 
-def closeRoutes(phpSessidReq, routesDf):
+
+def closeRoutes(session_id, routesDf):
     closeRoutesData = {
         "checkedroutes[]": [],
         "routeaction": "close",
@@ -825,6 +890,6 @@ def closeRoutes(phpSessidReq, routesDf):
     while closeRoutesReqError:
         _, closeRoutesReqError, _ = postRequest(
             url="http://ae31.airline-empires.com/routes.php",
-            cookies=phpSessidReq.cookies,
+            cookies={"PHPSESSID": session_id},
             data=closeRoutesData
         )
