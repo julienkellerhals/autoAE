@@ -17,5 +17,16 @@
 	"mounts": [
 		// "type=bind,source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,readonly",
 		// "type=bind,source=${localEnv:HOME}/.gitconfig,target=/home/vscode/.gitconfig"
-	]
+	],
+	"features": {
+		"ghcr.io/warrenbuckley/codespace-features/sqlite:1": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"qwtel.sqlite-viewer",
+				"ms-python.black-formatter"
+			]
+		}
+	}
 }
