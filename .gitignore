@@ -5,8 +5,6 @@ output.html
 **/__pycache__/**
 /temp/airportList/airportList_*.csv
 /temp/doneAirportList/doneAirportList_*.csv
-**/*json
 /notes.txt
 /flightRequest.csv
-/workspace.code-workspace
 /phpSessionReq.pickle
