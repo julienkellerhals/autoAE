@@ -20,6 +20,8 @@ def getRequest(url, cookies=None, params=None):
     r = None
     reqError = True
     errorCode = None
+    if cookies is not None:
+        print(dict(cookies))
     try:
         r = requests.get(
             url=url,

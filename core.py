@@ -2,8 +2,6 @@ import AEArgParser
 import userInput
 import api
 import pickle
-from bs4 import BeautifulSoup
-import pandas as pd
 
 args = AEArgParser.createArgParser()
 
