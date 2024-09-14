@@ -6,13 +6,10 @@ authors = ["Julien Kellerhals <julien.kellerhals@gmail.com>"]
 exclude = ["temp/**"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-Flask = "^2.1.0"
+python = "^3.12"
 beautifulsoup4 = "^4.10.0"
 pandas = "^1.4.1"
 numpy = "^1.22.3"
-Flask-Login = "^0.5.0"
-Werkzeug = "2.0.3"
 requests = "^2.27.1"
 lxml = "^4.8.0"
 
