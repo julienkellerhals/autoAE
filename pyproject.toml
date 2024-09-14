@@ -12,6 +12,7 @@ pandas = "^1.4.1"
 numpy = "^1.22.3"
 requests = "^2.27.1"
 lxml = "^4.8.0"
+pony = "^0.7.19"
 
 [tool.poetry.dev-dependencies]
 
