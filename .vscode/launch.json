@@ -12,6 +12,13 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "Python Debugger: Buy",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main_buy.py",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Python Debugger: Core",
             "type": "debugpy",
             "request": "launch",
