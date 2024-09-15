@@ -1,16 +1,20 @@
-import userInput
-import requests
-from bs4 import BeautifulSoup
 import re
-import math
 import cred
-import pandas as pd
+import requests
+import userInput
 import numpy as np
+import pandas as pd
+from bs4 import BeautifulSoup
+from bs4.element import Tag
+from requests.models import Response
 
-# helper function
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    pass
 
 
-def TrToList(tr):
+def TrToList(tr: Tag):
     rowList = []
     for td in tr:
         if td != '\n':
@@ -18,7 +22,7 @@ def TrToList(tr):
     return rowList
 
 
-def getRequest(url, cookies=None, params=None):
+def getRequest(url: str, cookies=None, params=None) -> tuple[Response, bool, str]:
     r = None
     reqError = True
     errorCode = None
@@ -46,7 +50,7 @@ def getRequest(url, cookies=None, params=None):
     return r, reqError, errorCode
 
 
-def postRequest(url, cookies, data):
+def postRequest(url: str, cookies, data):
     r = None
     reqError = True
     errorCode = None
