@@ -50,7 +50,7 @@ def getRequest(url: str, cookies=None, params=None) -> tuple[Response, bool, str
     return r, reqError, errorCode
 
 
-def postRequest(url: str, cookies, data):
+def postRequest(url: str, cookies: dict, data: dict):
     r = None
     reqError = True
     errorCode = None
