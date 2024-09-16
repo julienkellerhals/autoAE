@@ -1,3 +1,18 @@
 {
-    "editor.formatOnSave": true
+    "emmet.includeLanguages": {
+        "phoenix-heex": "html"
+    },
+    "editor.formatOnSave": true,
+    "tailwindCSS.includeLanguages": {
+        "phoenix-heex": "html",
+        "elixir": "html"
+    },
+    "[phoenix-heex]": {
+        "editor.foldingStrategy": "indentation"
+    },
+    "cSpell.words": [
+        "FHNW",
+        "Kellerhals",
+        "stylesheet"
+    ]
 }
