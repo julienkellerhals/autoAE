@@ -33,5 +33,6 @@
 			]
 		}
 	},
-	"remoteUser": "vscode"
+	"remoteUser": "vscode",
+	"postCreateCommand": "pipx install poetry && poetry --python install"
 }

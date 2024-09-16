@@ -2,11 +2,11 @@
 name = "autoae"
 version = "0.1.0"
 description = ""
-authors = ["Julien Kellerhals <julien.kellerhals@gmail.com>"]
+authors = ["Julien Kellerhals <julien@kellerhals.xyz>"]
 exclude = ["temp/**"]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.10"
 beautifulsoup4 = "^4.10.0"
 pandas = "^1.4.1"
 numpy = "^1.22.3"
