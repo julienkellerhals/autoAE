@@ -1,6 +1,4 @@
-import os.path
 import api
-from bs4 import BeautifulSoup
 from getpass import getpass
 import pandas as pd
 
@@ -28,7 +26,7 @@ while loginError:
     loginReq = api.login(username, password)
 
     # get world to join
-    worldReq, airlineDf, loginError = api.getWorld(loginReq)
+    worldReq, airlineDf, loginError = api.get_world(loginReq)
 
 tryServer = True
 while tryServer:

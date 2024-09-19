@@ -2,9 +2,9 @@ import api
 import userInput
 import AEArgParser
 from bs4 import BeautifulSoup
-from pony.orm import Database, Required, PrimaryKey, db_session, select, commit
+from pony.orm import Database, Required, db_session, select, commit
 
-from api import getRequest, postRequest
+from api import get_request, post_request
 
 db = Database()
 db.bind(provider="sqlite", filename="autoAE.db", create_db=True)
@@ -28,7 +28,7 @@ db.generate_mapping(create_tables=True)
 def get_session_id(args, username: str):
     password = userInput.setVar(args, "password")
 
-    forumSessidReq = api.getPageSession()
+    forumSessidReq = api.get_page_session()
     worldReq, airlineDf = api.doLogin(forumSessidReq, username, password)
     phpSessidReq = api.doEnterWorld(args, airlineDf, worldReq)
 
@@ -50,7 +50,7 @@ def main():
         0
     ].session_id
 
-    mainPageReq, _, _ = getRequest(
+    mainPageReq, _, _ = get_request(
         url="http://ae31.airline-empires.com/main.php",
         cookies={"PHPSESSID": session_id},
     )
@@ -61,7 +61,7 @@ def main():
     ):
         get_session_id(args, username)
 
-    market_buy_page_req, _, _ = getRequest(
+    market_buy_page_req, _, _ = get_request(
         url="https://ae31.airline-empires.com/aircraft_market_buy.php",
         cookies={"PHPSESSID": session_id},
     )
@@ -78,7 +78,7 @@ def main():
         )
         commit()
 
-    maker_market_buy_page_req, _, _ = getRequest(
+    maker_market_buy_page_req, _, _ = get_request(
         url="https://ae31.airline-empires.com/aircraft_market_buy.php?maker=26&order=manufacturer%2C+type&sort=ASC",
         cookies={"PHPSESSID": session_id},
         params={"maker": 182, "next": -1},
@@ -94,7 +94,7 @@ def main():
     ]
 
     for aircraft_id in aircraft_ids:
-        _req, _, _ = postRequest(
+        _req, _, _ = post_request(
             url="https://ae31.airline-empires.com/aircraft_lease_confirm.php",
             cookies={"PHPSESSID": session_id},
             data={"mode": "lease", "aircraftid": aircraft_id, "length": 10},

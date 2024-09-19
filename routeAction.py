@@ -2,7 +2,7 @@ import api
 import AEArgParser
 
 args = AEArgParser.createArgParser()
-forumSessidReq = api.getPageSession()
+forumSessidReq = api.get_page_session()
 worldReq, airlineDf = api.doLogin(args, forumSessidReq)
 phpSessidReq = api.doEnterWorld(args, airlineDf, worldReq)
 

@@ -3,7 +3,7 @@ import userInput
 import AEArgParser
 from pony.orm import Database, Required, db_session, select, commit
 
-from api import getRequest
+from api import get_request
 
 db = Database()
 db.bind(provider="sqlite", filename="autoAE.db", create_db=True)
@@ -21,7 +21,7 @@ db.generate_mapping(create_tables=True)
 def get_session_id(args, username: str):
     password = userInput.setVar(args, "password")
 
-    forumSessidReq = api.getPageSession()
+    forumSessidReq = api.get_page_session()
     worldReq, airlineDf = api.doLogin(forumSessidReq, username, password)
     phpSessidReq = api.doEnterWorld(args, airlineDf, worldReq)
 
@@ -42,7 +42,7 @@ def main():
         s for s in Sessions if s.username == username
     )[:][0].session_id
 
-    mainPageReq, _, _ = getRequest(
+    mainPageReq, _, _ = get_request(
         url="http://ae31.airline-empires.com/main.php",
         cookies={"PHPSESSID": session_id}
     )
