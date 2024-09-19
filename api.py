@@ -441,8 +441,7 @@ def createFlight(session_id: str, depAirportCode, aircraftTypeFilter, reducedCap
             reducedCapacity,
             hours
         ], index=availableAircraftsCols)
-        availableAircraftsDf = availableAircraftsDf.append(
-            aircraft, ignore_index=True)
+        availableAircraftsDf = pd.concat([availableAircraftsDf, aircraft.to_frame().T])
 
     # type conversion
     availableAircraftsDf['frequency'] = availableAircraftsDf['frequency'].astype(
@@ -877,7 +876,7 @@ def getRoutes(session_id, startIdx):
             profit,
             details
         ], index=routesCols)
-        routesDf = routesDf.append(routeSeries, ignore_index=True)
+        routesDf = pd.concat([routesDf, routeSeries.to_frame().T])
     return routesDf
 
 
