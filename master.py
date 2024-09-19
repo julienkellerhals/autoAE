@@ -3,7 +3,6 @@ import AEArgParser
 import pickle
 import subprocess
 import json
-import time
 
 def getCmd(cmd, config):
     for configKey in config.keys():
@@ -66,7 +65,7 @@ while runScript:
                 # TODO If user chooses not to add, list all existing and retry
         else:
             args = AEArgParser.createArgParser()
-            forumSessidReq = api.getPageSession()
+            forumSessidReq = api.get_page_session()
             worldReq, airlineDf = api.doLogin(args, forumSessidReq)
             phpSessidReq = api.doEnterWorld(args, airlineDf, worldReq)
             f = open('phpSessionReq.pickle', 'wb')
