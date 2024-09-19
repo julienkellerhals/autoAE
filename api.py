@@ -1,27 +1,34 @@
-import userInput
-import requests
-from bs4 import BeautifulSoup
+
 import re
-import math
-import cred
-import pandas as pd
+from typing import TYPE_CHECKING
+
+import requests
 import numpy as np
+import pandas as pd
+from bs4 import BeautifulSoup
+from bs4.element import Tag
+from requests.models import Response
 
-# helper function
+import cred
+import userInput
 
 
-def TrToList(tr):
-    rowList = []
+if TYPE_CHECKING:
+    pass
+
+
+def tr_to_list(tr: Tag):
+    row_list = []
     for td in tr:
         if td != '\n':
-            rowList.append(td.text)
-    return rowList
+            row_list.append(td.text)
+    return row_list
 
 
-def getRequest(url, cookies=None, params=None):
+def get_request(url: str, cookies=None, params=None) -> tuple[Response , bool, str]:
     r = None
-    reqError = True
-    errorCode = None
+    request_error = True
+    error_code = None
     try:
         r = requests.get(
             url=url,
@@ -30,7 +37,7 @@ def getRequest(url, cookies=None, params=None):
             timeout=210
         )
         r.raise_for_status()
-        reqError = False
+        request_error = False
     except requests.exceptions.Timeout as e:
         print("request timed-out")
         print(e)
@@ -38,18 +45,18 @@ def getRequest(url, cookies=None, params=None):
         print("connection error")
         print(e)
     except requests.exceptions.HTTPError as e:
-        errorCode = r.status_code
+        error_code = r.status_code
         print(e)
     except requests.exceptions.ChunkedEncodingError as e:
         print("connection error")
         print(e)
-    return r, reqError, errorCode
+    return r, request_error, error_code
 
 
-def postRequest(url, cookies, data):
+def post_request(url: str, cookies: dict, data: dict):
     r = None
-    reqError = True
-    errorCode = None
+    request_error = True
+    error_code = None
     try:
         r = requests.post(
             url,
@@ -58,7 +65,7 @@ def postRequest(url, cookies, data):
             timeout=210
         )
         r.raise_for_status()
-        reqError = False
+        request_error = False
     except requests.exceptions.Timeout as e:
         print("request timed-out")
         print(e)
@@ -66,43 +73,43 @@ def postRequest(url, cookies, data):
         print("connection error")
         print(e)
     except requests.exceptions.HTTPError as e:
-        errorCode = r.status_code
+        error_code = r.status_code
         print(e)
     except requests.exceptions.ChunkedEncodingError as e:
         print("connection error")
         print(e)
-    return r, reqError, errorCode
+    return r, request_error, error_code
 
 
-def getPageSession():
+def get_page_session():
     # get page session id
-    sessionReqError = True
-    while sessionReqError:
+    session_request_error = True
+    while session_request_error:
         print("Getting homepage cookies ...")
-        forumSessidReq, sessionReqError, _ = getRequest(
+        forum_session_id_req, session_request_error, _ = get_request(
             url="http://www.airline-empires.com/index.php?/page/home.html"
         )
-    return forumSessidReq
+    return forum_session_id_req
 
 
-def login(forumSessidReq, username, password):
-    loginReqError = True
+def login(forum_session_id_req, username, password):
+    login_request_error = True
     cred.user['ips_username'] = username
     cred.user['ips_password'] = password
     # do login
-    while loginReqError:
+    while login_request_error:
         print("Logging in ...")
-        loginReq, loginReqError, _ = postRequest(
+        login_request, login_request_error, _ = post_request(
             url="http://www.airline-empires.com/index.php?app=core&module=global&section=login&do=process",
-            cookies=forumSessidReq.cookies,
+            cookies=forum_session_id_req.cookies,
             data=cred.user
         )
-    return loginReq
+    return login_request
 
 
-def getWorld(loginReq):
-    worldReqError = True
-    airlineCols = [
+def get_world(login_request):
+    world_request_error = True
+    airline_cols = [
         "worldName",
         "name",
         "idleAircraft",
@@ -111,19 +118,19 @@ def getWorld(loginReq):
         "worldId",
         "userId"
     ]
-    airlineDf = pd.DataFrame(columns=airlineCols)
+    airline_df = pd.DataFrame(columns=airline_cols)
 
     # get worlds
-    while worldReqError:
-        worldReq, worldReqError, errorCode = getRequest(
+    while world_request_error:
+        worldReq, world_request_error, errorCode = get_request(
             url="http://www.airline-empires.com/index.php?app=ae",
-            cookies=loginReq.cookies
+            cookies=login_request.cookies
         )
         if (errorCode == 401):
             break
 
-    if not worldReqError:
-        print("logged in with user: {}".format(cred.user['ips_username']))
+    if not world_request_error:
+        print(f"logged in with user: {cred.user['ips_username']}")
         worldPage = BeautifulSoup(worldReq.text, 'html.parser')
         htmlWorldList = worldPage.find_all("div", "category_block block_wrap")
         for world in htmlWorldList:
@@ -149,10 +156,10 @@ def getWorld(loginReq):
                     airlineCash,
                     airlineWorldId,
                     airlineUserId
-                ], index=airlineCols)
-                airlineDf = pd.concat([airlineDf, airline.to_frame().T])
+                ], index=airline_cols)
+                airline_df = pd.concat([airline_df, airline.to_frame().T])
 
-        print(airlineDf.to_string(columns=[
+        print(airline_df.to_string(columns=[
             "worldName",
             "name",
             "idleAircraft",
@@ -160,14 +167,14 @@ def getWorld(loginReq):
             "cash"
         ], index=False))
 
-    return worldReq, airlineDf, worldReqError
+    return worldReq, airline_df, world_request_error
 
 
 def doLogin(forumSessidReq, username, password):
     loginError = True
     while loginError:
         loginReq = login(forumSessidReq, username, password)
-        worldReq, airlineDf, loginError = getWorld(loginReq)
+        worldReq, airlineDf, loginError = get_world(loginReq)
 
     return worldReq, airlineDf
 
@@ -176,7 +183,7 @@ def enterWorld(worldReq, gameServer):
     phpSessidReqError = True
     while phpSessidReqError:
         # enter world and get php session
-        phpSessidReq, phpSessidReqError, _ = postRequest(
+        phpSessidReq, phpSessidReqError, _ = post_request(
             url="http://www.airline-empires.com/index.php?app=ae&module=gameworlds&section=enterworld",
             cookies=worldReq.cookies,
             data=gameServer
@@ -204,7 +211,7 @@ def doEnterWorld(args, airlineDf, worldReq):
     }
 
     # enter world
-    print("entering world {} with {}".format(worldId, airlineName))
+    print(f"entering world {worldId} with {airlineName}")
     phpSessidReq = enterWorld(worldReq, gameServer)
     return phpSessidReq
 
@@ -220,7 +227,7 @@ def getAircraftStats(session_id: str):
     aircraftStatsDf = pd.DataFrame(columns=aircraftStatsCol)
 
     while mainPageReqError:
-        mainPageReq, mainPageReqError, _ = getRequest(
+        mainPageReq, mainPageReqError, _ = get_request(
             url="http://ae31.airline-empires.com/main.php",
             cookies={"PHPSESSID": session_id}
         )
@@ -229,7 +236,7 @@ def getAircraftStats(session_id: str):
         'a', text="Airline Details").attrs['href']
 
     while getAircraftsReqError:
-        getAircraftsReq, getAircraftsReqError, _ = getRequest(
+        getAircraftsReq, getAircraftsReqError, _ = get_request(
             url=("http://ae31.airline-empires.com/" + airlineDetailsHref),
             cookies={"PHPSESSID": session_id}
         )
@@ -243,7 +250,7 @@ def getAircraftStats(session_id: str):
         aircraftDetailReqError = True
 
         while aircraftDetailReqError:
-            getAircraftDetailReq, aircraftDetailReqError, _ = getRequest(
+            getAircraftDetailReq, aircraftDetailReqError, _ = get_request(
                 url=("http://ae31.airline-empires.com/" +
                      aircraftHref.attrs['href']),
                 cookies={"PHPSESSID": session_id}
@@ -256,7 +263,7 @@ def getAircraftStats(session_id: str):
 
         maxRangeEngineSeries = pd.Series(['', 0, 0], index=aircraftStatsCol)
         for tr in engineInfoTable.find_all('tr')[1:]:
-            engineTableRow = TrToList(tr)
+            engineTableRow = tr_to_list(tr)
             engineRange = int(
                 re.sub(r' mi.*', '', engineTableRow[7]).replace(',', ''))
             engineMinRunway = int(engineTableRow[9].replace(',', ''))
@@ -287,7 +294,7 @@ def getFlights(session_id: str, searchParams: str):
     flightsDf = pd.DataFrame(columns=flightsCols)
 
     while listFlightsReqError:
-        listFlightsReq, listFlightsReqError, _ = getRequest(
+        listFlightsReq, listFlightsReqError, _ = get_request(
             url="http://ae31.airline-empires.com/rentgate.php",
             cookies={"PHPSESSID": session_id},
             params=searchParams
@@ -333,7 +340,7 @@ def getFlightDemand(session_id: str, flight):
         flightDetailsReqError = True
         while flightDetailsReqError:
             # flight details
-            flightDetailsReq, flightDetailsReqError, _ = getRequest(
+            flightDetailsReq, flightDetailsReqError, _ = get_request(
                 url="http://ae31.airline-empires.com/" + flight['flightUrl'],
                 cookies={"PHPSESSID": session_id},
             )
@@ -382,9 +389,9 @@ def createFlight(session_id: str, depAirportCode, aircraftTypeFilter, reducedCap
     }
 
     while availableAircraftsReqError:
-        # look for available aircrafts
-        # post data required in order to see all available aricrafts
-        availableAircraftsReq, availableAircraftsReqError, _ = postRequest(
+        # look for available aircraft
+        # post data required in order to see all available aircraft
+        availableAircraftsReq, availableAircraftsReqError, _ = post_request(
             url="http://ae31.airline-empires.com/route_details.php?city1={}&city2={}".format(
                 routeAircraftPostData['city1'],
                 routeAircraftPostData['city2']
@@ -437,8 +444,7 @@ def createFlight(session_id: str, depAirportCode, aircraftTypeFilter, reducedCap
             reducedCapacity,
             hours
         ], index=availableAircraftsCols)
-        availableAircraftsDf = availableAircraftsDf.append(
-            aircraft, ignore_index=True)
+        availableAircraftsDf = pd.concat([availableAircraftsDf, aircraft.to_frame().T])
 
     # type conversion
     availableAircraftsDf['frequency'] = availableAircraftsDf['frequency'].astype(
@@ -581,7 +587,7 @@ def createFlight(session_id: str, depAirportCode, aircraftTypeFilter, reducedCap
                     break
                 else:
                     if ((totFreq + availableAircraftRow['frequency']) > availableAircraftRow['avgFreq']):
-                        # case when enought flights were added
+                        # case when enough flights were added
                         addFlightsPostData["freq_" + availableAircraftRow['aircraft']] = (
                             availableAircraftRow['avgFreq'] - totFreq)
                         totFreq += (availableAircraftRow['avgFreq'] - totFreq)
@@ -635,7 +641,7 @@ def checkOriSlots(session_id: str, autoSlots, autoTerminal, airport):
     slotsAvailable = True
 
     while mainPageReqError:
-        mainPageReq, mainPageReqError, _ = getRequest(
+        mainPageReq, mainPageReqError, _ = get_request(
             url="http://ae31.airline-empires.com/main.php",
             cookies={"PHPSESSID": session_id}
         )
@@ -644,18 +650,18 @@ def checkOriSlots(session_id: str, autoSlots, autoTerminal, airport):
         'a', text="Airline Details").attrs['href']
 
     while gateUtilisationReqError:
-        gateUtilisationReq, gateUtilisationReqError, _ = getRequest(
+        gateUtilisationReq, gateUtilisationReqError, _ = get_request(
             url=("http://ae31.airline-empires.com/" + airlineDetailsHref),
             cookies={"PHPSESSID": session_id}
         )
     gateUtilisationPage = BeautifulSoup(gateUtilisationReq.text, 'lxml')
     # TODO implement part when there is no bought slot from this airport
     gateUtilisationTable = gateUtilisationPage.find(id='airline_airport_list')
-    gateTableHeaders = TrToList(
+    gateTableHeaders = tr_to_list(
         gateUtilisationTable.find_all('tr')[0].findAll('td'))
     gateTableRowList = []
     for tr in gateUtilisationTable.find_all('tr')[1:]:
-        gateTableRow = TrToList(tr)
+        gateTableRow = tr_to_list(tr)
         gateTableRowList.append(dict(zip(gateTableHeaders, gateTableRow)))
     gateUtilisationDf = pd.DataFrame(gateTableRowList)
     gateUtilisationDf = gateUtilisationDf.astype(
@@ -670,7 +676,7 @@ def checkOriSlots(session_id: str, autoSlots, autoTerminal, airport):
         slotsAvailable = False
         if (autoTerminal == 'y'):
             while getTerminalsReqError:
-                getTerminalReq, getTerminalsReqError, _ = getRequest(
+                getTerminalReq, getTerminalsReqError, _ = get_request(
                     url="http://ae31.airline-empires.com/termmarket.php",
                     cookies={"PHPSESSID": session_id}
                 )
@@ -682,7 +688,7 @@ def checkOriSlots(session_id: str, autoSlots, autoTerminal, airport):
                 "action": "go"
             }
             while addTerminalReqError:
-                _, addTerminalReqError, _ = getRequest(
+                _, addTerminalReqError, _ = get_request(
                     url="http://ae31.airline-empires.com/buildterm.php",
                     cookies={"PHPSESSID": session_id},
                     params=buildTerminalData
@@ -716,7 +722,7 @@ def checkTgtSlots(session_id, autoSlots, autoTerminal, airport, airportSlots, fl
                     "quicklease": "Lease 1 {}".format(airport)
                 }
                 while addSlotsReqError:
-                    _, addSlotsReqError, _ = postRequest(
+                    _, addSlotsReqError, _ = post_request(
                         url="http://ae31.airline-empires.com/rentgate.php",
                         cookies={"PHPSESSID": session_id},
                         data=slotsLeaseData
@@ -725,7 +731,7 @@ def checkTgtSlots(session_id, autoSlots, autoTerminal, airport, airportSlots, fl
             else:
                 if (autoTerminal == 'y'):
                     while getTerminalsReqError:
-                        getTerminalReq, getTerminalsReqError, _ = getRequest(
+                        getTerminalReq, getTerminalsReqError, _ = get_request(
                             url="http://ae31.airline-empires.com/termmarket.php",
                             cookies={"PHPSESSID": session_id}
                         )
@@ -744,7 +750,7 @@ def checkTgtSlots(session_id, autoSlots, autoTerminal, airport, airportSlots, fl
                         "action": "go"
                     }
                     while addTerminalReqError:
-                        _, addTerminalReqError, _ = getRequest(
+                        _, addTerminalReqError, _ = get_request(
                             url="http://ae31.airline-empires.com/buildterm.php",
                             cookies={"PHPSESSID": session_id},
                             params=buildTerminalData
@@ -766,7 +772,7 @@ def addHub(session_id: str, airport):
         "action": "go"
     }
     while addTerminalReqError:
-        _, addTerminalReqError, _ = getRequest(
+        _, addTerminalReqError, _ = get_request(
             url="http://ae31.airline-empires.com/buildterm.php",
             cookies={"PHPSESSID": session_id},
             params=buildTerminalData
@@ -777,7 +783,7 @@ def addHub(session_id: str, airport):
         "hubaction": "Open+Hub"
     }
     while addHubReqError:
-        _, addHubReqError, _ = getRequest(
+        _, addHubReqError, _ = get_request(
             url="http://ae31.airline-empires.com/newhub.php",
             cookies={"PHPSESSID": session_id},
             params=addHubData
@@ -787,7 +793,7 @@ def addHub(session_id: str, airport):
 def addFlight(session_id, city1, city2, addFlightsPostData, frequency):
     addFlightsReqError = True
     while addFlightsReqError:
-        _, addFlightsReqError, _ = postRequest(
+        _, addFlightsReqError, _ = post_request(
             url="http://ae31.airline-empires.com/route_details.php?city1={}&city2={}".format(
                 city1,
                 city2
@@ -818,7 +824,7 @@ def getRoutes(session_id, startIdx):
 
     getRoutesReqError = True
     while getRoutesReqError:
-        getRoutesReq, getRoutesReqError, _ = getRequest(
+        getRoutesReq, getRoutesReqError, _ = get_request(
             url="http://ae31.airline-empires.com/routes.php?city=all&order=desc&arr_dep=all&next={}".format(
                 startIdx),
             cookies={"PHPSESSID": session_id}
@@ -873,7 +879,7 @@ def getRoutes(session_id, startIdx):
             profit,
             details
         ], index=routesCols)
-        routesDf = routesDf.append(routeSeries, ignore_index=True)
+        routesDf = pd.concat([routesDf, routeSeries.to_frame().T])
     return routesDf
 
 
@@ -888,7 +894,7 @@ def closeRoutes(session_id, routesDf):
         closeRoutesData['checkedroutes[]'].append(route['routeId'])
     closeRoutesReqError = True
     while closeRoutesReqError:
-        _, closeRoutesReqError, _ = postRequest(
+        _, closeRoutesReqError, _ = post_request(
             url="http://ae31.airline-empires.com/routes.php",
             cookies={"PHPSESSID": session_id},
             data=closeRoutesData

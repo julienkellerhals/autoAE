@@ -1,40 +1,54 @@
 import api
 import userInput
 import AEArgParser
-from pony import orm
+from pony.orm import Database, Required, db_session, select, commit
 
-db = orm.Database()
+from api import get_request
+
+db = Database()
 db.bind(provider="sqlite", filename="autoAE.db", create_db=True)
 
 
 class Sessions(db.Entity):
-    username = orm.Required(str)
-    session_id = orm.Required(str)
+    username = Required(str)
+    session_id = Required(str)
 
 
 db.generate_mapping(create_tables=True)
-orm.set_sql_debug(True)
+# orm.set_sql_debug(True)
 
 
-@orm.db_session
+def get_session_id(args, username: str):
+    password = userInput.setVar(args, "password")
+
+    forumSessidReq = api.get_page_session()
+    worldReq, airlineDf = api.doLogin(forumSessidReq, username, password)
+    phpSessidReq = api.doEnterWorld(args, airlineDf, worldReq)
+
+    s = Sessions(username=username, session_id=dict(
+        phpSessidReq.cookies).get("PHPSESSID"))
+    commit()
+
+
+@db_session
 def main():
     args = AEArgParser.createArgParser()
     username = userInput.setVar(args, "username", "Please enter username: ")
 
-    if len(orm.select(s for s in Sessions if s.username == username)[:]) == 0:
-        password = userInput.setVar(args, "password")
+    if len(select(s for s in Sessions if s.username == username)[:]) == 0:
+        get_session_id(args, username)
 
-        forumSessidReq = api.getPageSession()
-        worldReq, airlineDf = api.doLogin(forumSessidReq, username, password)
-        phpSessidReq = api.doEnterWorld(args, airlineDf, worldReq)
-
-        s = Sessions(username=username, session_id=dict(
-            phpSessidReq.cookies).get("PHPSESSID"))
-        orm.commit()
-
-    session_id: str = orm.select(
+    session_id: str = select(
         s for s in Sessions if s.username == username
     )[:][0].session_id
+
+    mainPageReq, _, _ = get_request(
+        url="http://ae31.airline-empires.com/main.php",
+        cookies={"PHPSESSID": session_id}
+    )
+
+    if mainPageReq.text == "<script type='text/javascript'>window.location = 'http://www.airline-empires.com/index.php?app=ae';</script>":
+        get_session_id(args, username)
 
     aircraftStatsDf = api.getAircraftStats(session_id)
     aircraftList = aircraftStatsDf['aircraft'] \

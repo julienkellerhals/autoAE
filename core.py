@@ -11,7 +11,7 @@ except KeyError:
     varValue = None
 
 if (varValue == None):
-    forumSessidReq = api.getPageSession()
+    forumSessidReq = api.get_page_session()
     worldReq, airlineDf = api.doLogin(args, forumSessidReq)
     phpSessidReq = api.doEnterWorld(args, airlineDf, worldReq)
 else:

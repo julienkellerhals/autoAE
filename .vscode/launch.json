@@ -12,11 +12,25 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "Python Debugger: Buy",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main_buy.py",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Python Debugger: Core",
             "type": "debugpy",
             "request": "launch",
             "program": "core.py",
             "console": "integratedTerminal"
-        }
+        },
+        {
+            "type": "mix_task",
+            "name": "Phoenix",
+            "request": "launch",
+            "task": "phx.server",
+            "projectDir": "${workspaceRoot}"
+        },
     ]
 }
