@@ -1,21 +1,14 @@
-[tool.poetry]
+[project]
 name = "autoae"
 version = "0.1.0"
-description = ""
-authors = ["Julien Kellerhals <julien.kellerhals@gmail.com>"]
-exclude = ["temp/**"]
-
-[tool.poetry.dependencies]
-python = "^3.12"
-beautifulsoup4 = "^4.10.0"
-pandas = "^1.4.1"
-numpy = "^1.22.3"
-requests = "^2.27.1"
-lxml = "^4.8.0"
-pony = "^0.7.19"
-
-[tool.poetry.dev-dependencies]
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4>=4.12.3",
+    "lxml>=5.3.0",
+    "numpy>=2.1.1",
+    "pandas>=2.2.2",
+    "pony>=0.7.19",
+    "requests>=2.32.3",
+]

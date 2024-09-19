@@ -24,6 +24,13 @@
             "request": "launch",
             "program": "core.py",
             "console": "integratedTerminal"
-        }
+        },
+        {
+            "type": "mix_task",
+            "name": "Phoenix",
+            "request": "launch",
+            "task": "phx.server",
+            "projectDir": "${workspaceRoot}"
+        },
     ]
 }
