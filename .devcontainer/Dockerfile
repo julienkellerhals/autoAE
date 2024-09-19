@@ -7,7 +7,7 @@ ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 
 FROM ${BUILDER_IMAGE} as builder
 
-RUN apt update -y && apt install inotify-tools python3 pipx -y
+RUN apt update -y && apt install inotify-tools python3 -y
 RUN cp /usr/bin/python3 /usr/bin/python
 
 RUN mix local.hex --force
