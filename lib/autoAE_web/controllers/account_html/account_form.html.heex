@@ -1,0 +1,12 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input field={f[:username]} type="text" label="Username" />
+  <.input field={f[:world]} type="text" label="World" />
+  <.input field={f[:airline]} type="text" label="Airline" />
+  <.input field={f[:session_id]} type="text" label="Session" />
+  <:actions>
+    <.button>Save Account</.button>
+  </:actions>
+</.simple_form>

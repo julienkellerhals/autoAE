@@ -64,6 +64,8 @@ defmodule AutoAEWeb.Router do
   scope "/", AutoAEWeb do
     pipe_through [:browser, :require_authenticated_user]
 
+    resources "/accounts", AccountController
+
     live_session :require_authenticated_user,
       on_mount: [{AutoAEWeb.UserAuth, :ensure_authenticated}] do
       live "/users/settings", UserSettingsLive, :edit

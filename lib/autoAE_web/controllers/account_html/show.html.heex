@@ -1,0 +1,18 @@
+<.header>
+  Account <%= @account.id %>
+  <:subtitle>This is a account record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/accounts/#{@account}/edit"}>
+      <.button>Edit account</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Username"><%= @account.username %></:item>
+  <:item title="World"><%= @account.world %></:item>
+  <:item title="Airline"><%= @account.airline %></:item>
+  <:item title="Session"><%= @account.session_id %></:item>
+</.list>
+
+<.back navigate={~p"/accounts"}>Back to accounts</.back>
