@@ -1,8 +1,8 @@
 <.header>
   Listing Accounts
   <:actions>
-    <.link href={~p"/accounts/new"}>
-      <.button>New Account</.button>
+    <.link href={~p"/accounts/world"}>
+      <.button>Get airlines</.button>
     </.link>
   </:actions>
 </.header>
@@ -16,6 +16,7 @@
     <div class="sr-only">
       <.link navigate={~p"/accounts/#{account}"}>Show</.link>
     </div>
+    <.link navigate={~p"/accounts/#{account}/connect"}>Connect</.link>
     <.link navigate={~p"/accounts/#{account}/edit"}>Edit</.link>
   </:action>
   <:action :let={account}>
