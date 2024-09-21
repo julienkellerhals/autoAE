@@ -64,7 +64,13 @@ defmodule AutoAEWeb.Router do
   scope "/", AutoAEWeb do
     pipe_through [:browser, :require_authenticated_user]
 
+    get "/accounts/world", AccountController, :world
+    post "/accounts/world", AccountController, :run_world
+
     resources "/accounts", AccountController
+
+    get "/accounts/:id/connect", AccountController, :connect
+    post "/accounts/:id/connect", AccountController, :run_connect
 
     live_session :require_authenticated_user,
       on_mount: [{AutoAEWeb.UserAuth, :ensure_authenticated}] do
