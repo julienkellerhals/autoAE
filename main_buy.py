@@ -29,7 +29,7 @@ def get_session_id(args, username: str):
     password = userInput.setVar(args, "password")
 
     forumSessidReq = api.get_page_session()
-    worldReq, airlineDf = api.doLogin(forumSessidReq, username, password)
+    worldReq, airlineDf = api.do_login(forumSessidReq, username, password)
     phpSessidReq = api.doEnterWorld(args, airlineDf, worldReq)
 
     s = Sessions(
