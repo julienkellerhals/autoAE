@@ -6,7 +6,7 @@ defmodule AutoAE.Accounts do
   import Ecto.Query, warn: false
   alias AutoAE.Repo
 
-  alias AutoAE.Accounts.{User, UserToken, UserNotifier}
+  alias AutoAE.Accounts.{User, UserToken, UserNotifier, AccountPassword}
 
   ## Database getters
 
@@ -445,5 +445,44 @@ defmodule AutoAE.Accounts do
   """
   def change_account(%Account{} = account, attrs \\ %{}) do
     Account.changeset(account, attrs)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking account changes.
+
+  ## Examples
+
+      iex> change_account(account)
+      %Ecto.Changeset{data: %Account{}}
+
+  """
+  def change_account_password(%AccountPassword{} = account, attrs \\ %{}) do
+    AccountPassword.changeset(account, attrs)
+  end
+
+  @doc """
+  Creates a account password.
+
+  ## Examples
+
+      iex> create_account_password(%{field: value})
+      {:ok, %AccountPassword{}}
+
+      iex> create_account_password(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_account_password(attrs \\ %{}) do
+    changeset =
+      %AccountPassword{}
+      |> AccountPassword.changeset(attrs)
+
+    if changeset.valid? do
+      {:ok}
+    else
+      # Annotate the action so the UI shows errors
+      changeset = %{changeset | action: :registration}
+      {:error, changeset}
+    end
   end
 end
