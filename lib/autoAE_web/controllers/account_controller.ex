@@ -3,6 +3,7 @@ defmodule AutoAEWeb.AccountController do
 
   alias AutoAE.Accounts
   alias AutoAE.Accounts.Account
+  alias AutoAE.Accounts.AccountPassword
 
   def index(conn, _params) do
     accounts = Accounts.list_accounts()
@@ -48,6 +49,75 @@ defmodule AutoAEWeb.AccountController do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :edit, account: account, changeset: changeset)
+    end
+  end
+
+  def world(conn, _params) do
+    changeset = Accounts.change_account_password(%AccountPassword{})
+
+    render(conn, :world, changeset: changeset)
+  end
+
+  def run_world(conn, %{"account_password" => account_params}) do
+    case Accounts.create_account_password(account_params) do
+      {:ok} ->
+        Task.async(fn ->
+          System.cmd("python3", [
+            "update_world.py",
+            "-u",
+            account_params["username"],
+            "-p",
+            account_params["password"]
+          ])
+        end)
+
+        conn
+        |> put_flash(
+          :info,
+          "Launched refresh job, please refresh after a few seconds to see the updated page."
+        )
+        |> redirect(to: ~p"/accounts/")
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        render(conn, :world, changeset: changeset)
+    end
+  end
+
+  def connect(conn, %{"id" => id}) do
+    account = Accounts.get_account!(id)
+    changeset = Accounts.change_account_password(%AccountPassword{})
+
+    render(conn, :connect, account: account, changeset: changeset)
+  end
+
+  def run_connect(conn, %{"id" => id, "account_password" => account_params}) do
+    account = Accounts.get_account!(id)
+
+    case Accounts.create_account_password(account_params) do
+      {:ok} ->
+        Task.async(fn ->
+          System.cmd("python3", [
+            "update_session_token.py",
+            "-u",
+            account.username,
+            "-p",
+            account_params["password"],
+            "-w",
+            account.world,
+            "-a",
+            account.airline
+          ])
+        end)
+
+        conn
+        |> put_flash(
+          :info,
+          "Launched refresh job, please refresh after a few seconds to see the updated page."
+        )
+        |> redirect(to: ~p"/accounts/")
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        render(conn, :connect, account: account, changeset: changeset)
     end
   end
 
