@@ -1,0 +1,15 @@
+<.header>
+  Edit Account <%= @account.id %>
+  <:subtitle>Use this form to manage account records in your database.</:subtitle>
+</.header>
+<.simple_form :let={f} for={@changeset} action={~p"/accounts/#{@account}/connect"}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input field={f[:password]} type="password" label="Password" />
+  <:actions>
+    <.button>Save Account</.button>
+  </:actions>
+</.simple_form>
+
+<.back navigate={~p"/accounts"}>Back to accounts</.back>
