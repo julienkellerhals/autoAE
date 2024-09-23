@@ -18,7 +18,7 @@ else:
     f = open(varValue, 'rb')
     phpSessidReq = pickle.loads(f.read())
 
-aircraftStatsDf = api.getAircraftStats(phpSessidReq)
+aircraftStatsDf = api.get_aircraft_stats(phpSessidReq)
 aircraftList = aircraftStatsDf['aircraft'].sort_values().astype(str).values.flatten().tolist()
 print("Available aircraft types:")
 print(', '.join(aircraftList))

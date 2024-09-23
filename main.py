@@ -50,7 +50,7 @@ def main():
     if mainPageReq.text == "<script type='text/javascript'>window.location = 'http://www.airline-empires.com/index.php?app=ae';</script>":
         get_session_id(args, username)
 
-    aircraftStatsDf = api.getAircraftStats(session_id)
+    aircraftStatsDf = api.get_aircraft_stats(session_id)
     aircraftList = aircraftStatsDf['aircraft'] \
         .sort_values().astype(str).values.flatten().tolist()
 
