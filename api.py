@@ -170,14 +170,41 @@ def get_world(login_request):
     return worldReq, airline_df, world_request_error
 
 
-def doLogin(forumSessidReq, username, password):
+def do_login(forum_session_id_request, username: str, password: str):
     loginError = True
     while loginError:
-        loginReq = login(forumSessidReq, username, password)
+        loginReq = login(forum_session_id_request, username, password)
         worldReq, airlineDf, loginError = get_world(loginReq)
 
     return worldReq, airlineDf
 
+def enter_world(worldReq, gameServer):
+    phpSessidReqError = True
+    while phpSessidReqError:
+        # enter world and get php session
+        phpSessidReq, phpSessidReqError, _ = post_request(
+            url="http://www.airline-empires.com/index.php?app=ae&module=gameworlds&section=enterworld",
+            cookies=worldReq.cookies,
+            data=gameServer
+        )
+    return phpSessidReq
+
+
+def do_enter_world(world_name: str, airline_name: str, airline_df: pd.DataFrame, world_request):
+    world_id = airline_df[['worldId']].loc[
+        (airline_df["worldName"] == world_name) & (airline_df['name'] == airline_name)
+    ].to_string(header=False, index=False).strip()
+    user_id = airline_df[['userId']].loc[
+        (airline_df["worldName"] == world_name) & (airline_df['name'] == airline_name)
+    ].to_string(header=False, index=False).strip()
+
+    game_server = {
+        "world": world_id,
+        "userid": user_id
+    }
+
+    php_session_id_request = enterWorld(world_request, game_server)
+    return php_session_id_request
 
 def enterWorld(worldReq, gameServer):
     phpSessidReqError = True
