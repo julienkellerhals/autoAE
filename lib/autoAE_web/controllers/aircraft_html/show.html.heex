@@ -1,0 +1,17 @@
+<.header>
+  Aircraft <%= @aircraft.id %>
+  <:subtitle>This is a aircraft record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/aircraft/#{@aircraft}/edit"}>
+      <.button>Edit aircraft</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Aircraft"><%= @aircraft.aircraft %></:item>
+  <:item title="Range"><%= @aircraft.range %></:item>
+  <:item title="Min runway"><%= @aircraft.min_runway %></:item>
+</.list>
+
+<.back navigate={~p"/aircraft"}>Back to aircraft</.back>
