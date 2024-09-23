@@ -243,13 +243,13 @@ def doEnterWorld(args, airlineDf, worldReq):
     return phpSessidReq
 
 
-def getAircraftStats(session_id: str):
+def get_aircraft_stats(session_id: str):
     mainPageReqError = True
     getAircraftsReqError = True
     aircraftStatsCol = [
         "aircraft",
         "range",
-        "minRunway"
+        "min_runway"
     ]
     aircraftStatsDf = pd.DataFrame(columns=aircraftStatsCol)
 
