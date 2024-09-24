@@ -1,0 +1,24 @@
+<.header>
+  Configuration <%= @configuration.id %>
+  <:subtitle>This is a configuration record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/configurations/#{@configuration}/edit"}>
+      <.button>Edit configuration</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Country"><%= @configuration.country %></:item>
+  <:item title="Region"><%= @configuration.region %></:item>
+  <:item title="Min range"><%= @configuration.min_range %></:item>
+  <:item title="Max range"><%= @configuration.max_range %></:item>
+  <:item title="Departure airport code"><%= @configuration.departure_airport_code %></:item>
+  <:item title="Auto slot"><%= @configuration.auto_slot %></:item>
+  <:item title="Auto terminal"><%= @configuration.auto_terminal %></:item>
+  <:item title="Auto hub"><%= @configuration.auto_hub %></:item>
+  <:item title="Min frequency"><%= @configuration.min_frequency %></:item>
+  <:item title="Max frequency"><%= @configuration.max_frequency %></:item>
+</.list>
+
+<.back navigate={~p"/configurations"}>Back to configurations</.back>

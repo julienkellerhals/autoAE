@@ -49,4 +49,27 @@ defmodule AutoAE.BotsFixtures do
 
     aircraft
   end
+
+  @doc """
+  Generate a configuration.
+  """
+  def configuration_fixture(attrs \\ %{}) do
+    {:ok, configuration} =
+      attrs
+      |> Enum.into(%{
+        auto_hub: true,
+        auto_slot: true,
+        auto_terminal: true,
+        country: "some country",
+        departure_airport_code: "some departure_airport_code",
+        max_frequency: 42,
+        max_range: 42,
+        min_frequency: 42,
+        min_range: 42,
+        region: "some region"
+      })
+      |> AutoAE.Bots.create_configuration()
+
+    configuration
+  end
 end

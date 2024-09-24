@@ -74,6 +74,8 @@ defmodule AutoAEWeb.Router do
 
     resources "/aircraft", AircraftController
 
+    resources "/configurations", ConfigurationController
+
     live_session :require_authenticated_user,
       on_mount: [{AutoAEWeb.UserAuth, :ensure_authenticated}] do
       live "/users/settings", UserSettingsLive, :edit
