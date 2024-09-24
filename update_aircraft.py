@@ -1,4 +1,3 @@
-import sys
 import argparse
 
 import api
@@ -13,9 +12,6 @@ args = parser.parse_args()
 
 def main() -> None:
     session_id = get_session_id_by_id(args.id)
-
-    if session_id is None:
-        sys.exit()
 
     aircraft_stats_df = api.get_aircraft_stats(session_id)
     add_aircraft(args.id, aircraft_stats_df)
