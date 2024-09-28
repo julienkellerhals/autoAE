@@ -448,6 +448,22 @@ defmodule AutoAE.Accounts do
   end
 
   @doc """
+  Deletes all accounts attached to the user.
+
+  ## Examples
+
+      iex> delete_all_accounts_from_user("existing_user")
+
+      iex> delete_all_accounts_from_user("unknown_user")
+
+  """
+  def delete_all_accounts_from_user(username) when is_binary(username) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete_all(:accounts, from(a in Account, where: a.username == ^username))
+    |> Repo.transaction()
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking account changes.
 
   ## Examples
