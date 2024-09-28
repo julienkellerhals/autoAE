@@ -12,7 +12,6 @@ from pony.orm import (
     Optional,
     select,
     commit,
-    delete,
 )
 
 
@@ -68,8 +67,6 @@ def add_session_id(username: str, world: str, airline: str, session_id: str) -> 
 
 @db_session
 def add_airlines(username: str, airlines: pd.DataFrame) -> None:
-    delete(a for a in Accounts if a.username == username)  # type: ignore
-
     for _, airline in airlines.iterrows():
         Accounts(
             username=username,
@@ -102,6 +99,34 @@ def add_aircraft(account_id: int, aircraft_stats: pd.DataFrame):
             inserted_at=str(datetime.now()),
             updated_at=str(datetime.now()),
         )
+
+
+class Configurations(db.Entity):
+    country = Optional(str)
+    region = Optional(str)
+    min_range = Optional(int)
+    max_range = Optional(int)
+    departure_airport_code = Required(str)
+    auto_slot = Required(bool)
+    auto_terminal = Required(bool)
+    auto_hub = Required(bool)
+    min_frequency = Optional(int)
+    max_frequency = Optional(int)
+    account_id = Required(int)
+    user_id = Required(int)
+    aircraft_id = Required(int)
+
+
+@db_session
+def get_configuration_by_id(_id: int) -> dict:
+    configuration: Configurations = Configurations.get(id=_id)  # type: ignore
+
+    if configuration is None:
+        sys.exit()
+
+    aircraft: Aircraft = Aircraft.get(id=configuration.aircraft_id)
+
+    return {**configuration.to_dict(), **aircraft.to_dict()}
 
 
 db.generate_mapping()
