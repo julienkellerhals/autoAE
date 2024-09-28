@@ -7,12 +7,18 @@
   </:actions>
 </.header>
 
-<.table id="configurations" rows={@configurations} row_click={&JS.navigate(~p"/configurations/#{&1}")}>
+<.table
+  id="configurations"
+  rows={@configurations}
+  row_click={&JS.navigate(~p"/configurations/#{&1}")}
+>
   <:col :let={configuration} label="Country"><%= configuration.country %></:col>
   <:col :let={configuration} label="Region"><%= configuration.region %></:col>
   <:col :let={configuration} label="Min range"><%= configuration.min_range %></:col>
   <:col :let={configuration} label="Max range"><%= configuration.max_range %></:col>
-  <:col :let={configuration} label="Departure airport code"><%= configuration.departure_airport_code %></:col>
+  <:col :let={configuration} label="Departure airport code">
+    <%= configuration.departure_airport_code %>
+  </:col>
   <:col :let={configuration} label="Auto slot"><%= configuration.auto_slot %></:col>
   <:col :let={configuration} label="Auto terminal"><%= configuration.auto_terminal %></:col>
   <:col :let={configuration} label="Auto hub"><%= configuration.auto_hub %></:col>
@@ -22,10 +28,16 @@
     <div class="sr-only">
       <.link navigate={~p"/configurations/#{configuration}"}>Show</.link>
     </div>
+
+    <.link navigate={~p"/configurations/#{configuration}/run"}>Run</.link>
     <.link navigate={~p"/configurations/#{configuration}/edit"}>Edit</.link>
   </:action>
   <:action :let={configuration}>
-    <.link href={~p"/configurations/#{configuration}"} method="delete" data-confirm="Are you sure?">
+    <.link
+      href={~p"/configurations/#{configuration}"}
+      method="delete"
+      data-confirm="Are you sure?"
+    >
       Delete
     </.link>
   </:action>
