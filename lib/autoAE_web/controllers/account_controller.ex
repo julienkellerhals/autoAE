@@ -61,15 +61,15 @@ defmodule AutoAEWeb.AccountController do
   def run_world(conn, %{"account_password" => account_params}) do
     case Accounts.create_account_password(account_params) do
       {:ok} ->
-        Task.async(fn ->
-          System.cmd("python3", [
-            "update_world.py",
-            "-u",
-            account_params["username"],
-            "-p",
-            account_params["password"]
-          ])
-        end)
+        Accounts.delete_all_accounts_from_user(account_params["username"])
+
+        System.cmd("python3", [
+          "update_world.py",
+          "-u",
+          account_params["username"],
+          "-p",
+          account_params["password"]
+        ])
 
         conn
         |> put_flash(
@@ -95,19 +95,17 @@ defmodule AutoAEWeb.AccountController do
 
     case Accounts.create_account_password(account_params) do
       {:ok} ->
-        Task.async(fn ->
-          System.cmd("python3", [
-            "update_session_token.py",
-            "-u",
-            account.username,
-            "-p",
-            account_params["password"],
-            "-w",
-            account.world,
-            "-a",
-            account.airline
-          ])
-        end)
+        System.cmd("python3", [
+          "update_session_token.py",
+          "-u",
+          account.username,
+          "-p",
+          account_params["password"],
+          "-w",
+          account.world,
+          "-a",
+          account.airline
+        ])
 
         conn
         |> put_flash(
