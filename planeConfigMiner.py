@@ -79,7 +79,7 @@ if not flightsDf.empty:
         "{:20} {:10} {:10} {:10}".format("Destination", "First", "Business", "Economy")
     )
     for idx, flight in flightsDf.iterrows():
-        flightDemand = api.getFlightDemand(phpSessidReq, flight)
+        flightDemand = api.get_flight_demand(phpSessidReq, flight)
         flightDemandSeries = pd.Series(
             [
                 depAirportCode,
