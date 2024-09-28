@@ -5,13 +5,13 @@ from db import get_session_id_by_id, add_aircraft
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--id", required=True, help="Account ID")
+parser.add_argument("--account_id", required=True, help="Account ID")
 
 args = parser.parse_args()
 
 
 def main() -> None:
-    session_id = get_session_id_by_id(args.id)
+    session_id = get_session_id_by_id(args.account_id)
 
     aircraft_stats_df = api.get_aircraft_stats(session_id)
     add_aircraft(args.id, aircraft_stats_df)
