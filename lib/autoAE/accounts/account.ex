@@ -7,7 +7,7 @@ defmodule AutoAE.Accounts.Account do
     field :username, :string
     field :world, :string
     field :airline, :string
-    field :user_id, :id
+    belongs_to :user, AutoAE.Accounts.User
 
     timestamps(type: :utc_datetime)
   end
