@@ -8,7 +8,6 @@ from bs4 import BeautifulSoup
 from bs4.element import Tag
 from requests.models import Response
 
-import cred
 import userInput
 
 
@@ -25,9 +24,9 @@ def tr_to_list(tr: Tag):
 
 
 def get_request(url: str, cookies=None, params=None) -> tuple[Response, bool, str]:
-    r = None
     request_error = True
     error_code = None
+
     try:
         r = requests.get(url=url, cookies=cookies, params=params, timeout=210)
         r.raise_for_status()
@@ -47,12 +46,12 @@ def get_request(url: str, cookies=None, params=None) -> tuple[Response, bool, st
     return r, request_error, error_code
 
 
-def post_request(url: str, cookies: dict, data: dict):
-    r = None
+def post_request(url: str, cookies: dict, params: dict = {}, data: dict = {}):
     request_error = True
     error_code = None
+
     try:
-        r = requests.post(url, cookies=cookies, data=data, timeout=210)
+        r = requests.post(url, params=params, cookies=cookies, data=data, timeout=210)
         r.raise_for_status()
         request_error = False
     except requests.exceptions.Timeout as e:
@@ -89,9 +88,19 @@ def login(forum_session_id_req, username, password):
     while login_request_error:
         print("Logging in ...")
         login_request, login_request_error, _ = post_request(
-            url="http://www.airline-empires.com/index.php?app=core&module=global&section=login&do=process",
+            url="http://www.airline-empires.com/index.php",
             cookies=forum_session_id_req.cookies,
-            data=cred.user,
+            params={
+                "app": "core",
+                "module": "global",
+                "section": "login",
+                "do": "process",
+            },
+            data={
+                "auth_key": "880ea6a14ea49e853634fbdc5015a024",
+                "ips_username": username,
+                "ips_password": password,
+            },
         )
     return login_request
 
@@ -162,12 +171,12 @@ def get_world(login_request):
 
 
 def do_login(forum_session_id_request, username: str, password: str):
-    loginError = True
-    while loginError:
-        loginReq = login(forum_session_id_request, username, password)
-        worldReq, airlineDf, loginError = get_world(loginReq)
+    login_error = True
+    while login_error:
+        login_request = login(forum_session_id_request, username, password)
+        world_request, airline_df, login_error = get_world(login_request)
 
-    return worldReq, airlineDf
+    return world_request, airline_df
 
 
 def enter_world(worldReq, gameServer):
@@ -312,51 +321,54 @@ def get_aircraft_stats(session_id: str):
     return aircraftStatsDf
 
 
-def getFlights(session_id: str, searchParams: str):
-    listFlightsReqError = True
-    slotsRegex = r"\((\d*).*\)"
-    flightsCols = ["airport", "flightUrl", "flightCreated", "slots", "gatesAvailable"]
-    flightsDf = pd.DataFrame(columns=flightsCols)
+def get_flights(session_id: str, search_params: dict):
+    list_flights_request_error = True
+    slots_regex = r"\((\d*).*\)"
+    flights_cols = ["airport", "flightUrl", "flightCreated", "slots", "gatesAvailable"]
+    flights_df = pd.DataFrame(columns=flights_cols)
 
-    while listFlightsReqError:
-        listFlightsReq, listFlightsReqError, _ = get_request(
+    while list_flights_request_error:
+        list_flights_request, list_flights_request_error, _ = get_request(
             url="http://ae31.airline-empires.com/rentgate.php",
             cookies={"PHPSESSID": session_id},
-            params=searchParams,
+            params=search_params,
         )
-    flightListPage = BeautifulSoup(listFlightsReq.text, "html.parser")
-    flightListTable = flightListPage.find_all("form")[1]
-    flightList = flightListTable.find_all("tr")[1:]
-    for flightRow in flightList:
-        airport = flightRow.find_all("td")[0].text
+    flight_list_page = BeautifulSoup(list_flights_request.text, "html.parser")
+    flight_list_table = flight_list_page.find_all("form")[1]
+    flight_list = flight_list_table.find_all("tr")[1:]
+
+    for flight_row in flight_list:
+        airport = flight_row.find_all("td")[0].text
+
         try:
-            flightUrl = flightRow.find_all("td")[5].find("a").attrs["href"]
+            flight_url = flight_row.find_all("td")[5].find("a").attrs["href"]
         except AttributeError as e:
             print(
-                "Flight from {} to {} cannot be researched".format(
-                    searchParams["city"], airport
-                )
+                f"Flight from {search_params['city']} to {airport} cannot be researched"
             )
             print(e)
+
+        if flight_row.find_all("td")[5].find("div") is None:
+            flight_created = False
         else:
-            if flightRow.find_all("td")[5].find("div") == None:
-                flightCreated = False
-            else:
-                flightCreated = True
-            try:
-                slots = re.search(slotsRegex, flightRow.find_all("td")[6].text).group(1)
-            except AttributeError:
-                slots = None
-            if flightRow.find_all("td")[10].find("input") == None:
-                gatesAvailable = False
-            else:
-                gatesAvailable = True
-            flight = pd.Series(
-                [airport, flightUrl, flightCreated, slots, gatesAvailable],
-                index=flightsCols,
-            )
-            flightsDf = pd.concat([flightsDf, flight.to_frame().T])
-    return listFlightsReq, flightsDf
+            flight_created = True
+
+        try:
+            slots = re.search(slots_regex, flight_row.find_all("td")[6].text).group(1)
+        except AttributeError:
+            slots = None
+
+        if flight_row.find_all("td")[10].find("input") is None:
+            gates_available = False
+        else:
+            gates_available = True
+
+        flight = pd.Series(
+            [airport, flight_url, flight_created, slots, gates_available],
+            index=flights_cols,
+        )
+        flights_df = pd.concat([flights_df, flight.to_frame().T])
+    return list_flights_request, flights_df
 
 
 def getFlightDemand(session_id: str, flight):
@@ -385,19 +397,19 @@ def getFlightDemand(session_id: str, flight):
     return flightDemand
 
 
-def createFlight(
+def create_flight(
     session_id: str,
-    depAirportCode,
-    aircraftTypeFilter,
-    reducedCapacityFlag,
-    autoSlots,
-    autoTerminal,
-    minFreq,
-    maxFreq,
+    departure_airport_code: str,
+    aircraft,
+    reduced_capacity_flag,
+    auto_slot,
+    auto_terminal,
+    min_frequency,
+    max_frequency,
     flight,
 ):
-    availableAircraftsReqError = True
-    availableAircraftsCols = [
+    available_aircraft_req_error = True
+    available_aircraft_cols = [
         "frequency",
         "aircraft",
         "type",
@@ -407,280 +419,304 @@ def createFlight(
         "reducedCapacity",
         "hours",
     ]
-    availableAircraftsDf = pd.DataFrame(columns=availableAircraftsCols)
+    available_aircraft_df = pd.DataFrame(columns=available_aircraft_cols)
 
-    flightDemand = getFlightDemand(session_id, flight)
+    flight_demand = getFlightDemand(session_id, flight)
 
     # aircraft details
-    routeAircraftPostData = {
-        "city1": depAirportCode,
+    route_aircraft_post_data = {
+        "city1": departure_airport_code,
         "city2": flight["airport"],
         "addflights": 1,
         "addflights_filter_actype": 0,
         "addflights_filter_hours": 1,
-        "glairport": depAirportCode,
+        "glairport": departure_airport_code,
         "qty": 1,
     }
 
-    while availableAircraftsReqError:
+    while available_aircraft_req_error:
         # look for available aircraft
         # post data required in order to see all available aircraft
-        availableAircraftsReq, availableAircraftsReqError, _ = post_request(
-            url="http://ae31.airline-empires.com/route_details.php?city1={}&city2={}".format(
-                routeAircraftPostData["city1"], routeAircraftPostData["city2"]
-            ),
+        available_aircraft_req, available_aircraft_req_error, _ = post_request(
+            url="http://ae31.airline-empires.com/route_details.php",
+            params={
+                "city1": route_aircraft_post_data["city1"],
+                "city2": route_aircraft_post_data["city2"],
+            },
             cookies={"PHPSESSID": session_id},
-            data=routeAircraftPostData,
+            data=route_aircraft_post_data,
         )
-    availableAircraftsPage = BeautifulSoup(availableAircraftsReq.text, "html.parser")
-    newFlightsPage = availableAircraftsPage.find("div", {"id": "newflights"})
-    availableAircraftsTable = newFlightsPage.find(
+
+    available_aircraft_page = BeautifulSoup(available_aircraft_req.text, "html.parser")
+    new_flights_page = available_aircraft_page.find("div", {"id": "newflights"})
+    available_aircraft_table = new_flights_page.find(
         "td", text="Type"
     ).parent.parent.find_all("tr", recursive=False)[1:]
 
-    for availableAircraftRow in availableAircraftsTable:
-        aircraftData = availableAircraftRow.find_all("td", recursive=False)
+    for available_aircraft_row in available_aircraft_table:
+        aircraft_data = available_aircraft_row.find_all("td", recursive=False)
         if (
-            aircraftData[0].text
+            aircraft_data[0].text
             == "You do not have any aircraft available to serve this route."
         ):
             print(
                 "You do not have any aircraft available to serve this route. (May also be a bug in AE code)"
             )
         else:
-            frequency = aircraftData[0].find_all("option")[-1:][0].text
-        aircraftId = aircraftData[1].text
-        aircraftType = aircraftData[2].text
+            frequency = aircraft_data[0].find_all("option")[-1:][0].text
+
+        aircraft_id = aircraft_data[1].text
+        aircraft_type = aircraft_data[2].text
+
         try:
-            seatF = int(aircraftData[3].find_all("td")[-3:-2][0].text.strip(" F"))
+            seat_f = int(aircraft_data[3].find_all("td")[-3:-2][0].text.strip(" F"))
         except IndexError:
-            seatF = 0
+            seat_f = 0
+
         try:
-            seatC = int(aircraftData[3].find_all("td")[-2:-1][0].text.strip(" C"))
+            seat_c = int(aircraft_data[3].find_all("td")[-2:-1][0].text.strip(" C"))
         except IndexError:
-            seatC = 0
+            seat_c = 0
+
         try:
-            seatY = int(aircraftData[3].find_all("td")[-1:][0].text.strip(" Y"))
+            seat_y = int(aircraft_data[3].find_all("td")[-1:][0].text.strip(" Y"))
         except IndexError:
-            seatY = 0
-        if aircraftData[4].find_all("span") == []:
-            reducedCapacity = False
+            seat_y = 0
+
+        if aircraft_data[4].find_all("span") == []:
+            reduced_capacity = False
         else:
-            reducedCapacity = True
-        hours = aircraftData[5].text
+            reduced_capacity = True
+
+        hours = aircraft_data[5].text
         aircraft = pd.Series(
             [
                 frequency,
-                aircraftId,
-                aircraftType,
-                seatF,
-                seatC,
-                seatY,
-                reducedCapacity,
+                aircraft_id,
+                aircraft_type,
+                seat_f,
+                seat_c,
+                seat_y,
+                reduced_capacity,
                 hours,
             ],
-            index=availableAircraftsCols,
+            index=available_aircraft_cols,
         )
-        availableAircraftsDf = pd.concat([availableAircraftsDf, aircraft.to_frame().T])
+        available_aircraft_df = pd.concat(
+            [available_aircraft_df, aircraft.to_frame().T]
+        )
 
     # type conversion
-    availableAircraftsDf["frequency"] = availableAircraftsDf["frequency"].astype(int)
-    availableAircraftsDf["seatF"] = availableAircraftsDf["seatF"].astype(int)
-    availableAircraftsDf["seatC"] = availableAircraftsDf["seatC"].astype(int)
-    availableAircraftsDf["seatY"] = availableAircraftsDf["seatY"].astype(int)
-    availableAircraftsDf["hours"] = availableAircraftsDf["hours"].astype(int)
+    available_aircraft_df["frequency"] = available_aircraft_df["frequency"].astype(int)
+    available_aircraft_df["seatF"] = available_aircraft_df["seatF"].astype(int)
+    available_aircraft_df["seatC"] = available_aircraft_df["seatC"].astype(int)
+    available_aircraft_df["seatY"] = available_aircraft_df["seatY"].astype(int)
+    available_aircraft_df["hours"] = available_aircraft_df["hours"].astype(int)
 
     # find correct aircraft
-    if aircraftTypeFilter != "":
-        availableAircraftsDf = availableAircraftsDf.loc[
-            availableAircraftsDf["type"] == aircraftTypeFilter
+    if aircraft["type"] != "":
+        available_aircraft_df = available_aircraft_df.loc[
+            available_aircraft_df["type"] == aircraft["type"]
         ]
-        if availableAircraftsDf.empty:
+        if available_aircraft_df.empty:
             print("No aircraft of this type available for this route")
-    if reducedCapacityFlag == "n":
-        availableAircraftsDf = availableAircraftsDf.loc[
-            availableAircraftsDf["reducedCapacity"] == False
+
+    if reduced_capacity_flag == "n":
+        available_aircraft_df = available_aircraft_df.loc[
+            available_aircraft_df["reducedCapacity"] == False
         ]
-        if availableAircraftsDf.empty:
+        if available_aircraft_df.empty:
             print("No aircraft available for this route")
 
     # find required frequency compared to the demand
-    flightDemandSeries = pd.Series(
-        flightDemand, index=["seatReqF", "seatReqC", "seatReqY"]
+    flight_demand_series = pd.Series(
+        flight_demand, index=["seatReqF", "seatReqC", "seatReqY"]
     )
-    flightDemandSeries = flightDemandSeries * 7
-    availableAircraftsDf["seatReqF"] = flightDemandSeries["seatReqF"]
-    availableAircraftsDf["seatReqC"] = flightDemandSeries["seatReqC"]
-    availableAircraftsDf["seatReqY"] = flightDemandSeries["seatReqY"]
-    availableAircraftsDf["freqF"] = (
-        availableAircraftsDf["seatReqF"] / availableAircraftsDf["seatF"]
+    flight_demand_series = flight_demand_series * 7
+    available_aircraft_df["seatReqF"] = flight_demand_series["seatReqF"]
+    available_aircraft_df["seatReqC"] = flight_demand_series["seatReqC"]
+    available_aircraft_df["seatReqY"] = flight_demand_series["seatReqY"]
+
+    available_aircraft_df["freqF"] = (
+        available_aircraft_df["seatReqF"] / available_aircraft_df["seatF"]
     )
-    availableAircraftsDf["freqC"] = (
-        availableAircraftsDf["seatReqC"] / availableAircraftsDf["seatC"]
+    available_aircraft_df["freqC"] = (
+        available_aircraft_df["seatReqC"] / available_aircraft_df["seatC"]
     )
-    availableAircraftsDf["freqY"] = (
-        availableAircraftsDf["seatReqY"] / availableAircraftsDf["seatY"]
+    available_aircraft_df["freqY"] = (
+        available_aircraft_df["seatReqY"] / available_aircraft_df["seatY"]
     )
-    availableAircraftsDf = availableAircraftsDf.replace([np.inf, -np.inf], np.nan)
-    availableAircraftsDf["avgFreq"] = (
-        availableAircraftsDf[["freqF", "freqC", "freqY"]].mean(axis=1) + 0.5
+
+    available_aircraft_df = available_aircraft_df.replace([np.inf, -np.inf], np.nan)
+    available_aircraft_df["avgFreq"] = (
+        available_aircraft_df[["freqF", "freqC", "freqY"]].mean(axis=1) + 0.5
     )
-    # availableAircraftsDf[['avgFreq']].loc[availableAircraftsDf['avgFreq'] < availableAircraftsDf['freqY']](availableAircraftsDf[['freqY']].loc[availableAircraftsDf['avgFreq'] < availableAircraftsDf['freqY']])
-    availableAircraftsDf["avgFreq"] = availableAircraftsDf["avgFreq"].apply(np.ceil)
+    available_aircraft_df["avgFreq"] = available_aircraft_df["avgFreq"].apply(np.ceil)
 
     # get prices and ifs
-    flightInfo = newFlightsPage.find("div", "prices")
-    if flightInfo is not None:
-        flightInfo = flightInfo.contents[0]
-        flightInfoPrices = []
+    flight_info = new_flights_page.find("div", "prices")
+    if flight_info is not None:
+        flight_info = flight_info.contents[0]
+        flight_info_prices = []
         try:
-            for allFlightPrices in flightInfo.contents[3].findAll("input"):
-                flightInfoPrices.append(allFlightPrices.attrs["value"])
+            for all_flight_prices in flight_info.contents[3].findAll("input"):
+                flight_info_prices.append(all_flight_prices.attrs["value"])
         except:
             pass
 
-        flightInfoIFS = []
+        flight_info_ifs = []
         try:
-            for allFlightIFS in flightInfo.contents[4].findAll("option"):
+            for all_flight_ifs in flight_info.contents[4].findAll("option"):
                 try:
-                    allFlightIFS.attrs["selected"]
-                    flightInfoIFS.append(allFlightIFS.attrs["value"])
+                    all_flight_ifs.attrs["selected"]
+                    flight_info_ifs.append(all_flight_ifs.attrs["value"])
                 except KeyError:
                     pass
         except:
-            for allFlightIFS in flightInfo.find_all("a"):
-                flightInfoIFS.append(allFlightIFS.attrs["href"].split("id=")[-1:][0])
+            for all_flight_ifs in flight_info.find_all("a"):
+                flight_info_ifs.append(
+                    all_flight_ifs.attrs["href"].split("id=")[-1:][0]
+                )
 
         # find planes to use
-        availableAircraftsDf = availableAircraftsDf.sort_values("hours")
-        if not availableAircraftsDf.empty:
-            print(availableAircraftsDf)
-        totPassengerY = 0
-        totFreq = 0
-        addFlightsPostData = {
-            "city1": depAirportCode,
+        available_aircraft_df = available_aircraft_df.sort_values("hours")
+        if not available_aircraft_df.empty:
+            print(available_aircraft_df)
+
+        tot_passenger_y = 0
+        tot_frequency = 0
+        add_flights_post_data = {
+            "city1": departure_airport_code,
             "city2": flight["airport"],
             "addflights": 1,
             "addflights_filter_actype": 0,
             "addflights_filter_hours": 1,
-            "price_new_f": flightInfoPrices[0],
-            "price_new_c": flightInfoPrices[1],
-            "price_new_y": flightInfoPrices[2],
-            "ifs_id_f": flightInfoIFS[0],
-            "ifs_id_c": flightInfoIFS[1],
-            "ifs_id_y": flightInfoIFS[2],
+            "price_new_f": flight_info_prices[0],
+            "price_new_c": flight_info_prices[1],
+            "price_new_y": flight_info_prices[2],
+            "ifs_id_f": flight_info_ifs[0],
+            "ifs_id_c": flight_info_ifs[1],
+            "ifs_id_y": flight_info_ifs[2],
             "confirmaddflights": "Add Flights",
-            "glairport": depAirportCode,
+            "glairport": departure_airport_code,
             "qty": 1,
         }
-        for _, availableAircraftRow in availableAircraftsDf.iterrows():
-            minFreqCheck = True
-            maxFreqCheck = True
+        for _, available_aircraft_row in available_aircraft_df.iterrows():
+            min_frequency_check = True
+            max_frequency_check = True
 
-            if minFreq != "":
-                if availableAircraftRow["avgFreq"] < int(minFreq):
-                    minFreqCheck = False
+            if min_frequency is not None:
+                if available_aircraft_row["avgFreq"] < int(min_frequency):
+                    min_frequency_check = False
                     print(
-                        "\t{} exceeded min defined frequency. No flights were added".format(
-                            availableAircraftRow["type"]
-                        )
+                        f"\t{available_aircraft_row['type']} exceeded min defined frequency. No flights were added"
                     )
-                    if aircraftTypeFilter != "":
-                        break
-            if maxFreq != "":
-                if availableAircraftRow["avgFreq"] > int(maxFreq):
-                    maxFreqCheck = False
-                    print(
-                        "\t{} exceeded max defined frequency. No flights were added".format(
-                            availableAircraftRow["type"]
-                        )
-                    )
-                    if aircraftTypeFilter != "":
+                    if aircraft["type"] != "":
                         break
 
-            if minFreqCheck and maxFreqCheck:
-                if availableAircraftRow["frequency"] >= availableAircraftRow["avgFreq"]:
+            if max_frequency is not None:
+                if available_aircraft_row["avgFreq"] > int(max_frequency):
+                    max_frequency_check = False
+                    print(
+                        f"\t{available_aircraft_row['type']} exceeded max defined frequency. No flights were added"
+                    )
+                    if aircraft["type"] != "":
+                        break
+
+            if min_frequency_check and max_frequency_check:
+                if (
+                    available_aircraft_row["frequency"]
+                    >= available_aircraft_row["avgFreq"]
+                ):
                     # case when required frequency less than available
-                    addFlightsPostData["freq_" + availableAircraftRow["aircraft"]] = (
-                        availableAircraftRow["avgFreq"]
-                    )
+                    add_flights_post_data[
+                        "freq_" + available_aircraft_row["aircraft"]
+                    ] = available_aircraft_row["avgFreq"]
 
                     # check slots
-                    oriSlotsAvailable = checkOriSlots(
-                        session_id, autoSlots, autoTerminal, depAirportCode
+                    origin_slot_available = check_origin_slot(
+                        session_id=session_id,
+                        autoSlots=auto_slot,
+                        autoTerminal=auto_terminal,
+                        airport=departure_airport_code,
                     )
 
-                    tgtSlotsAvailable = checkTgtSlots(
-                        session_id,
-                        autoSlots,
-                        autoTerminal,
-                        flight["airport"],
-                        flight["slots"],
-                        availableAircraftRow["avgFreq"],
-                        flight["gatesAvailable"],
+                    target_slot_available = check_target_slot(
+                        session_id=session_id,
+                        autoSlots=auto_slot,
+                        autoTerminal=auto_terminal,
+                        airport=flight["airport"],
+                        airportSlots=flight["slots"],
+                        flightReqSlots=available_aircraft_row["avgFreq"],
+                        gatesAvailable=flight["gatesAvailable"],
                     )
 
-                    if oriSlotsAvailable & tgtSlotsAvailable:
+                    if origin_slot_available & target_slot_available:
                         # add flight
-                        addFlight(
+                        add_flight(
                             session_id,
-                            routeAircraftPostData["city1"],
-                            routeAircraftPostData["city2"],
-                            addFlightsPostData,
-                            availableAircraftRow["avgFreq"],
+                            route_aircraft_post_data["city1"],
+                            route_aircraft_post_data["city2"],
+                            add_flights_post_data,
+                            available_aircraft_row["avgFreq"],
                         )
                     break
                 else:
                     if (
-                        totFreq + availableAircraftRow["frequency"]
-                    ) > availableAircraftRow["avgFreq"]:
+                        tot_frequency + available_aircraft_row["frequency"]
+                    ) > available_aircraft_row["avgFreq"]:
                         # case when enough flights were added
-                        addFlightsPostData[
-                            "freq_" + availableAircraftRow["aircraft"]
-                        ] = availableAircraftRow["avgFreq"] - totFreq
-                        totFreq += availableAircraftRow["avgFreq"] - totFreq
+                        add_flights_post_data[
+                            "freq_" + available_aircraft_row["aircraft"]
+                        ] = available_aircraft_row["avgFreq"] - tot_frequency
+                        tot_frequency += (
+                            available_aircraft_row["avgFreq"] - tot_frequency
+                        )
                     else:
                         # continue adding flights
-                        addFlightsPostData[
-                            "freq_" + availableAircraftRow["aircraft"]
-                        ] = availableAircraftRow["frequency"]
-                        totFreq += availableAircraftRow["frequency"]
-                    totPassengerY += (
-                        availableAircraftRow["seatY"]
-                        * availableAircraftRow["frequency"]
+                        add_flights_post_data[
+                            "freq_" + available_aircraft_row["aircraft"]
+                        ] = available_aircraft_row["frequency"]
+                        tot_frequency += available_aircraft_row["frequency"]
+                    tot_passenger_y += (
+                        available_aircraft_row["seatY"]
+                        * available_aircraft_row["frequency"]
                     )
                     # check if the demand is meat (only checks Economy)
-                    if totPassengerY >= flightDemandSeries["seatReqY"]:
+                    if tot_passenger_y >= flight_demand_series["seatReqY"]:
                         # check slots, see func
-                        oriSlotsAvailable = checkOriSlots(
-                            session_id, autoSlots, autoTerminal, depAirportCode
+                        origin_slot_available = check_origin_slot(
+                            session_id=session_id,
+                            autoSlots=auto_slot,
+                            autoTerminal=auto_terminal,
+                            airport=departure_airport_code,
                         )
 
-                        tgtSlotsAvailable = checkTgtSlots(
-                            session_id,
-                            autoSlots,
-                            autoTerminal,
-                            flight["airport"],
-                            flight["slots"],
-                            availableAircraftRow["avgFreq"],
-                            flight["gatesAvailable"],
+                        target_slot_available = check_target_slot(
+                            session_id=session_id,
+                            autoSlots=auto_slot,
+                            autoTerminal=auto_terminal,
+                            airport=flight["airport"],
+                            airportSlots=flight["slots"],
+                            flightReqSlots=available_aircraft_row["avgFreq"],
+                            gatesAvailable=flight["gatesAvailable"],
                         )
 
-                        if oriSlotsAvailable & tgtSlotsAvailable:
+                        if origin_slot_available & target_slot_available:
                             # add flight
-                            addFlight(
-                                session_id,
-                                routeAircraftPostData["city1"],
-                                routeAircraftPostData["city2"],
-                                addFlightsPostData,
-                                totFreq,
+                            add_flight(
+                                session_id=session_id,
+                                city1=route_aircraft_post_data["city1"],
+                                city2=route_aircraft_post_data["city2"],
+                                addFlightsPostData=add_flights_post_data,
+                                frequency=tot_frequency,
                             )
                         break
     else:
-        print("Error in page (no flights dispayed / available)")
+        print("Error in page (no flights displayed / available)")
 
 
-def checkOriSlots(session_id: str, autoSlots, autoTerminal, airport):
+def check_origin_slot(session_id: str, autoSlots, autoTerminal, airport):
     mainPageReqError = True
     gateUtilisationReqError = True
     getTerminalsReqError = True
@@ -752,7 +788,7 @@ def checkOriSlots(session_id: str, autoSlots, autoTerminal, airport):
     return slotsAvailable
 
 
-def checkTgtSlots(
+def check_target_slot(
     session_id,
     autoSlots,
     autoTerminal,
@@ -820,27 +856,27 @@ def checkTgtSlots(
     return slotsAvailable
 
 
-def addHub(session_id: str, airport):
-    addTerminalReqError = True
-    addHubReqError = True
-    buildTerminalData = {"qty": "5", "id": airport, "price": "0", "action": "go"}
-    while addTerminalReqError:
-        _, addTerminalReqError, _ = get_request(
+def add_hub(session_id: str, airport: str) -> None:
+    add_terminal_req_error = True
+    add_hub_req_error = True
+    build_terminal_data = {"qty": "5", "id": airport, "price": "0", "action": "go"}
+    while add_terminal_req_error:
+        _, add_terminal_req_error, _ = get_request(
             url="http://ae31.airline-empires.com/buildterm.php",
             cookies={"PHPSESSID": session_id},
-            params=buildTerminalData,
+            params=build_terminal_data,
         )
 
-    addHubData = {"hub": airport, "hubaction": "Open+Hub"}
-    while addHubReqError:
-        _, addHubReqError, _ = get_request(
+    add_hub_data = {"hub": airport, "hubaction": "Open+Hub"}
+    while add_hub_req_error:
+        _, add_hub_req_error, _ = get_request(
             url="http://ae31.airline-empires.com/newhub.php",
             cookies={"PHPSESSID": session_id},
-            params=addHubData,
+            params=add_hub_data,
         )
 
 
-def addFlight(session_id, city1, city2, addFlightsPostData, frequency):
+def add_flight(session_id, city1, city2, addFlightsPostData, frequency):
     addFlightsReqError = True
     while addFlightsReqError:
         _, addFlightsReqError, _ = post_request(
