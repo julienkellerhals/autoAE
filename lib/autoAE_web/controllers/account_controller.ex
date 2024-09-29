@@ -83,15 +83,17 @@ defmodule AutoAEWeb.AccountController do
     end
   end
 
-  def connect(conn, %{"id" => id}) do
-    account = Accounts.get_account!(id)
+  def connect(conn, %{"account_id" => account_id}) do
+    account = Accounts.get_account!(account_id)
     changeset = Accounts.change_account_password(%AccountPassword{})
 
     render(conn, :connect, account: account, changeset: changeset)
   end
 
-  def run_connect(conn, %{"id" => id, "account_password" => account_params}) do
-    account = Accounts.get_account!(id)
+  def run_connect(conn, %{"account_id" => account_id, "account_password" => account_params}) do
+    account = Accounts.get_account!(account_id)
+    IO.inspect(account_id)
+    IO.inspect(account)
 
     case Accounts.create_account_password(account_params) do
       {:ok} ->
@@ -106,6 +108,14 @@ defmodule AutoAEWeb.AccountController do
           "-a",
           account.airline
         ])
+
+        Task.async(fn ->
+          System.cmd("python3", [
+            "update_aircraft.py",
+            "--account_id",
+            account_id
+          ])
+        end)
 
         conn
         |> put_flash(
