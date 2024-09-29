@@ -3,6 +3,9 @@
   <:subtitle>Use this form to manage configuration records in your database.</:subtitle>
 </.header>
 
-<.configuration_form changeset={@changeset} action={~p"/configurations/#{@configuration}"} />
+<.configuration_form
+  changeset={@changeset}
+  action={~p"/accounts/#{@account_id}/configurations/#{@configuration}"}
+/>
 
-<.back navigate={~p"/configurations"}>Back to configurations</.back>
+<.back navigate={~p"/accounts/#{@account_id}/configurations"}>Back to configurations</.back>

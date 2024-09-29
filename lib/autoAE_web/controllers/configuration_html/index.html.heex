@@ -1,7 +1,7 @@
 <.header>
   Listing Configurations
   <:actions>
-    <.link href={~p"/configurations/new"}>
+    <.link href={~p"/accounts/#{@account_id}/configurations/new"}>
       <.button>New Configuration</.button>
     </.link>
   </:actions>
@@ -10,7 +10,7 @@
 <.table
   id="configurations"
   rows={@configurations}
-  row_click={&JS.navigate(~p"/configurations/#{&1}")}
+  row_click={&JS.navigate(~p"/accounts/#{@account_id}/configurations/#{&1}")}
 >
   <:col :let={configuration} label="Country"><%= configuration.country %></:col>
   <:col :let={configuration} label="Region"><%= configuration.region %></:col>
@@ -26,15 +26,17 @@
   <:col :let={configuration} label="Max frequency"><%= configuration.max_frequency %></:col>
   <:action :let={configuration}>
     <div class="sr-only">
-      <.link navigate={~p"/configurations/#{configuration}"}>Show</.link>
+      <.link navigate={~p"/accounts/#{@account_id}/configurations/#{configuration}"}>Show</.link>
     </div>
 
-    <.link navigate={~p"/configurations/#{configuration}/run"}>Run</.link>
-    <.link navigate={~p"/configurations/#{configuration}/edit"}>Edit</.link>
+    <.link navigate={~p"/accounts/#{@account_id}/configurations/#{configuration}/run"}>Run</.link>
+    <.link navigate={~p"/accounts/#{@account_id}/configurations/#{configuration}/edit"}>
+      Edit
+    </.link>
   </:action>
   <:action :let={configuration}>
     <.link
-      href={~p"/configurations/#{configuration}"}
+      href={~p"/accounts/#{@account_id}/configurations/#{configuration}"}
       method="delete"
       data-confirm="Are you sure?"
     >

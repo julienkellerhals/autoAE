@@ -2,7 +2,7 @@
   Configuration <%= @configuration.id %>
   <:subtitle>This is a configuration record from your database.</:subtitle>
   <:actions>
-    <.link href={~p"/configurations/#{@configuration}/edit"}>
+    <.link href={~p"/accounts/#{@account_id}/configurations/#{@configuration}/edit"}>
       <.button>Edit configuration</.button>
     </.link>
   </:actions>
@@ -21,4 +21,4 @@
   <:item title="Max frequency"><%= @configuration.max_frequency %></:item>
 </.list>
 
-<.back navigate={~p"/configurations"}>Back to configurations</.back>
+<.back navigate={~p"/accounts/#{@account_id}/configurations"}>Back to configurations</.back>

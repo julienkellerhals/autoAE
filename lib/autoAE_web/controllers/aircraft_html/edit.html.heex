@@ -3,6 +3,9 @@
   <:subtitle>Use this form to manage aircraft records in your database.</:subtitle>
 </.header>
 
-<.aircraft_form changeset={@changeset} action={~p"/aircraft/#{@aircraft}"} />
+<.aircraft_form
+  changeset={@changeset}
+  action={~p"/accounts/#{@account_id}/aircraft/#{@aircraft}"}
+/>
 
-<.back navigate={~p"/aircraft"}>Back to aircraft</.back>
+<.back navigate={~p"/accounts/#{@account_id}/aircraft"}>Back to aircraft</.back>
