@@ -14,7 +14,7 @@ def main() -> None:
     session_id = get_session_id_by_id(args.account_id)
 
     aircraft_stats_df = api.get_aircraft_stats(session_id)
-    add_aircraft(args.id, aircraft_stats_df)
+    add_aircraft(args.account_id, aircraft_stats_df)
 
 
 if __name__ == "__main__":
