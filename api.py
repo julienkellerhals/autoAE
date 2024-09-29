@@ -83,9 +83,7 @@ def get_page_session():
 
 def login(forum_session_id_req, username, password):
     login_request_error = True
-    cred.user["ips_username"] = username
-    cred.user["ips_password"] = password
-    # do login
+
     while login_request_error:
         print("Logging in ...")
         login_request, login_request_error, _ = post_request(
@@ -129,7 +127,6 @@ def get_world(login_request):
             break
 
     if not world_request_error:
-        print(f"logged in with user: {cred.user['ips_username']}")
         worldPage = BeautifulSoup(worldReq.text, "html.parser")
         htmlWorldList = worldPage.find_all("div", "category_block block_wrap")
         for world in htmlWorldList:
