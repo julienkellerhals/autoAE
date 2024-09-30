@@ -75,9 +75,9 @@ defmodule AutoAEWeb.Router do
     get "/accounts/:account_id/connect", AccountController, :connect
     post "/accounts/:account_id/connect", AccountController, :run_connect
 
-    post "/accounts/:account_id/configurations/:configuration_id/run",
-         ConfigurationController,
-         :run
+    get "/accounts/:account_id/configurations/:configuration_id/run",
+        ConfigurationController,
+        :run
 
     live_session :require_authenticated_user,
       on_mount: [{AutoAEWeb.UserAuth, :ensure_authenticated}] do
