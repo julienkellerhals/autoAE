@@ -19,14 +19,18 @@ class Accounts(Base):
     world: Mapped[str]
     airline: Mapped[str]
     session_id: Mapped[Optional[str]]
-    user_id: Mapped[Optional[str]]
+    user_id: Mapped[str]
     inserted_at: Mapped[str]
     updated_at: Mapped[str]
 
 
 def get_account_by_username_world_airline(
-    username: str, world: str, airline: str, session: Session | None = None
-) -> Accounts:
+    user_id: int,
+    username: str,
+    world: str,
+    airline: str,
+    session: Session | None = None,
+) -> Accounts | None:
     if session is None:
         session = Session(ENGINE)
 
@@ -35,12 +39,10 @@ def get_account_by_username_world_airline(
         .where(Accounts.username == username)
         .where(Accounts.world == world)
         .where(Accounts.airline == airline)
+        .where(Accounts.user_id == user_id)
     )
 
     account = session.scalar(stmt)
-
-    if account is None:
-        sys.exit()
 
     return account
 
@@ -58,25 +60,42 @@ def get_account_by_id(_id: int) -> Accounts:
     return account
 
 
-def add_airlines(username: str, airlines: pd.DataFrame) -> None:
+def update_airlines(username: str, user_id: int, airlines: pd.DataFrame) -> None:
     session = Session(ENGINE)
 
     for _, airline in airlines.iterrows():
-        account = Accounts(
+        account = get_account_by_username_world_airline(
+            user_id=user_id,
             username=username,
             world=airline["worldName"],
             airline=airline["name"],
-            inserted_at=str(datetime.now()),
-            updated_at=str(datetime.now()),
         )
-        session.add(account)
-        session.commit()
+
+        if account is None:
+            account = Accounts(
+                username=username,
+                world=airline["worldName"],
+                airline=airline["name"],
+                user_id=user_id,
+                inserted_at=str(datetime.now()),
+                updated_at=str(datetime.now()),
+            )
+            session.add(account)
+            session.commit()
 
 
-def add_session_id(username: str, world: str, airline: str, session_id: str) -> None:
+def add_session_id(
+    user_id: int, username: str, world: str, airline: str, session_id: str
+) -> None:
     session = Session(ENGINE)
 
-    account = get_account_by_username_world_airline(username, world, airline, session)
+    account = get_account_by_username_world_airline(
+        user_id=user_id,
+        username=username,
+        world=world,
+        airline=airline,
+        session=session,
+    )
 
     if account is None:
         sys.exit()
