@@ -13,8 +13,8 @@ defmodule AutoAE.Bots.Configuration do
     field :auto_hub, :boolean, default: false
     field :min_frequency, :integer
     field :max_frequency, :integer
-    field :account_id, :id
-    field :user_id, :id
+    belongs_to :account, AutoAE.Accounts.Account
+    belongs_to :user, AutoAE.Accounts.User
     belongs_to :aircraft, AutoAE.Bots.Aircraft
 
     timestamps(type: :utc_datetime)
@@ -34,6 +34,8 @@ defmodule AutoAE.Bots.Configuration do
       :auto_hub,
       :min_frequency,
       :max_frequency,
+      :account_id,
+      :user_id,
       :aircraft_id
     ])
     |> validate_required([:departure_airport_code])
