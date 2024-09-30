@@ -26,6 +26,7 @@
         "charliermarsh",
         "citext",
         "confirmaddflights",
+        "debugpy",
         "devcontainers",
         "dotenv",
         "eamodio",
