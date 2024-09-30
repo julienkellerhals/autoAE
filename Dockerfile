@@ -89,17 +89,20 @@ ENV LC_ALL=en_US.UTF-8
 WORKDIR "/app"
 RUN chown nobody /app
 
-COPY pyproject.toml /app/bin/pyproject.toml
-COPY uv.lock /app/bin/uv.lock
+WORKDIR "/app/bin"
+COPY pyproject.toml pyproject.toml
+COPY uv.lock uv.lock
 RUN uv sync --frozen
 
-COPY models /app/bin/models
-COPY meta_data.py /app/bin/meta_data.py
-COPY api.py /app/bin/api.py
-COPY run_config.py /app/bin/run_config.py
-COPY update_aircraft.py /app/bin/update_aircraft.py
-COPY update_session_token.py /app/bin/update_session_token.py
-COPY update_world.py /app/bin/update_world.py
+COPY models models
+COPY meta_data.py meta_data.py
+COPY api.py api.py
+COPY run_config.py run_config.py
+COPY update_aircraft.py update_aircraft.py
+COPY update_session_token.py update_session_token.py
+COPY update_world.py update_world.py
+
+WORKDIR "/app"
 
 # set runner ENV
 ENV MIX_ENV="prod"
