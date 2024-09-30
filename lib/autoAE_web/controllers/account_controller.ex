@@ -61,7 +61,7 @@ defmodule AutoAEWeb.AccountController do
   def run_world(conn, %{"account_password" => account_params}) do
     case Accounts.create_account_password(account_params) do
       {:ok} ->
-        System.cmd("python3", [
+        System.cmd(".venv/bin/python3", [
           "update_world.py",
           "--username",
           account_params["username"],
@@ -95,7 +95,7 @@ defmodule AutoAEWeb.AccountController do
 
     case Accounts.create_account_password(account_params) do
       {:ok} ->
-        System.cmd("python3", [
+        System.cmd(".venv/bin/python3", [
           "update_session_token.py",
           "-u",
           account.username,
@@ -110,7 +110,7 @@ defmodule AutoAEWeb.AccountController do
         ])
 
         Task.async(fn ->
-          System.cmd("python3", [
+          System.cmd(".venv/bin/python3", [
             "update_aircraft.py",
             "--account_id",
             account_id,

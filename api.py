@@ -8,7 +8,6 @@ from bs4 import BeautifulSoup
 from bs4.element import Tag
 from requests.models import Response
 
-import userInput
 from meta_data import AVAILABLE_AIRCRAFT
 
 
@@ -232,9 +231,6 @@ def enterWorld(worldReq, gameServer):
 def doEnterWorld(args, airlineDf, worldReq):
     tryServer = True
     while tryServer:
-        airlineName = userInput.setVar(
-            args, "airline", "Please enter one of above mentioned airline names: "
-        )
         # TODO Problem if airline has the same name on different server
         worldId = (
             airlineDf[["worldId"]]

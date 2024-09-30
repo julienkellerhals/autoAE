@@ -73,11 +73,7 @@ RUN apt update -y && \
 
 RUN cp /usr/bin/python3 /usr/bin/python
 # Download the latest installer
-ADD https://astral.sh/uv/install.sh /uv-installer.sh
-# Run the installer then remove it
-RUN sh /uv-installer.sh && rm /uv-installer.sh
-# Ensure the installed binary is on the `PATH`
-ENV PATH="/root/.cargo/bin/:$PATH"
+ADD https://astral.sh/uv/install.sh /app/bin/uv-installer.sh
 
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
@@ -86,14 +82,27 @@ ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
 
+RUN useradd -ms /bin/sh docker
+
 WORKDIR "/app"
-RUN chown nobody /app
+RUN chown docker /app
+RUN chown docker /app/bin
+RUN chown docker /app/bin/uv-installer.sh
+
+USER docker
+
+WORKDIR "/app/bin"
+
+# Run the installer then remove it
+# RUN sh /app/bin/uv-installer.sh
+RUN sh /app/bin/uv-installer.sh && rm /app/bin/uv-installer.sh
+# Ensure the installed binary is on the `PATH`
+ENV PATH="/home/docker/.cargo/bin/:$PATH"
 
 COPY pyproject.toml pyproject.toml
 COPY uv.lock uv.lock
 RUN uv sync --frozen
 
-WORKDIR "/app/bin"
 COPY models models
 COPY meta_data.py meta_data.py
 COPY api.py api.py
@@ -108,9 +117,8 @@ WORKDIR "/app"
 ENV MIX_ENV="prod"
 
 # Only copy the final release from the build stage
-COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/auto_ae ./
+COPY --from=builder --chown=docker:root /app/_build/${MIX_ENV}/rel/auto_ae ./
 
-USER nobody
 
 # If using an environment that doesn't automatically reap zombie processes, it is
 # advised to add an init process such as tini via `apt-get install`

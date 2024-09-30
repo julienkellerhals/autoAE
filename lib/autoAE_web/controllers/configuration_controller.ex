@@ -81,7 +81,7 @@ defmodule AutoAEWeb.ConfigurationController do
 
   def run(conn, %{"account_id" => account_id, "configuration_id" => configuration_id}) do
     # Task.async(fn ->
-    System.cmd("python3", [
+    System.cmd(".venv/bin/python3", [
       "run_config.py",
       "--account_id",
       account_id,
