@@ -46,4 +46,4 @@ def get_configuration_by_id(_id: int) -> dict:
     if aircraft is None:
         sys.exit()
 
-    return {**dict(configuration), **dict(aircraft)}
+    return {**configuration.__dict__, **aircraft.__dict__}
