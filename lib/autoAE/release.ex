@@ -3,7 +3,7 @@ defmodule AutoAE.Release do
   Used for executing DB release tasks when run in production without Mix
   installed.
   """
-  @app :autoAE
+  @app :auto_ae
 
   def migrate do
     load_app()

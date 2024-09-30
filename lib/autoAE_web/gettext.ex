@@ -20,5 +20,5 @@ defmodule AutoAEWeb.Gettext do
 
   See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
   """
-  use Gettext, otp_app: :autoAE
+  use Gettext, otp_app: :auto_ae
 end

@@ -7,12 +7,12 @@
 # General application configuration
 import Config
 
-config :autoAE,
+config :auto_ae,
   ecto_repos: [AutoAE.Repo],
   generators: [timestamp_type: :utc_datetime]
 
 # Configures the endpoint
-config :autoAE, AutoAEWeb.Endpoint,
+config :auto_ae, AutoAEWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
@@ -29,7 +29,7 @@ config :autoAE, AutoAEWeb.Endpoint,
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
-config :autoAE, AutoAE.Mailer, adapter: Swoosh.Adapters.Local
+config :auto_ae, AutoAE.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
 config :esbuild,

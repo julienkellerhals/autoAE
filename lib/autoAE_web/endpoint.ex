@@ -1,5 +1,5 @@
 defmodule AutoAEWeb.Endpoint do
-  use Phoenix.Endpoint, otp_app: :autoAE
+  use Phoenix.Endpoint, otp_app: :auto_ae
 
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
@@ -21,7 +21,7 @@ defmodule AutoAEWeb.Endpoint do
   # when deploying your static files in production.
   plug Plug.Static,
     at: "/",
-    from: :autoAE,
+    from: :auto_ae,
     gzip: false,
     only: AutoAEWeb.static_paths()
 
@@ -31,7 +31,7 @@ defmodule AutoAEWeb.Endpoint do
     socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
     plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader
-    plug Phoenix.Ecto.CheckRepoStatus, otp_app: :autoAE
+    plug Phoenix.Ecto.CheckRepoStatus, otp_app: :auto_ae
   end
 
   plug Phoenix.LiveDashboard.RequestLogger,

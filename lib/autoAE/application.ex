@@ -11,9 +11,8 @@ defmodule AutoAE.Application do
       AutoAEWeb.Telemetry,
       AutoAE.Repo,
       {Ecto.Migrator,
-        repos: Application.fetch_env!(:autoAE, :ecto_repos),
-        skip: skip_migrations?()},
-      {DNSCluster, query: Application.get_env(:autoAE, :dns_cluster_query) || :ignore},
+       repos: Application.fetch_env!(:auto_ae, :ecto_repos), skip: skip_migrations?()},
+      {DNSCluster, query: Application.get_env(:auto_ae, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: AutoAE.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: AutoAE.Finch},
