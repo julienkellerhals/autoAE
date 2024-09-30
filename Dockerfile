@@ -13,23 +13,23 @@
 #
 ARG ELIXIR_VERSION=1.17.2
 ARG OTP_VERSION=26.2.5.3
-ARG DEBIAN_VERSION=bullseye-20240904-slim
+ARG DEBIAN_VERSION=bullseye-20240904
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 
-FROM ${BUILDER_IMAGE} as builder
+FROM ${BUILDER_IMAGE} AS builder
 
 # install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential git \
-    && apt-get clean && rm -f /var/lib/apt/lists/*_*
+RUN apt update -y && apt install -y build-essential git \
+  && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # prepare build dir
 WORKDIR /app
 
 # install hex + rebar
 RUN mix local.hex --force && \
-    mix local.rebar --force
+  mix local.rebar --force
 
 # set build ENV
 ENV MIX_ENV="prod"
@@ -67,25 +67,45 @@ RUN mix release
 # the compiled release and other runtime necessities
 FROM ${RUNNER_IMAGE}
 
-RUN apt-get update -y && \
-  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates \
-  && apt-get clean && rm -f /var/lib/apt/lists/*_*
+RUN apt update -y && \
+  apt install -y libstdc++6 openssl libncurses5 locales ca-certificates python3 curl \
+  && apt clean && rm -f /var/lib/apt/lists/*_*
+
+RUN cp /usr/bin/python3 /usr/bin/python
+# Download the latest installer
+ADD https://astral.sh/uv/install.sh /uv-installer.sh
+# Run the installer then remove it
+RUN sh /uv-installer.sh && rm /uv-installer.sh
+# Ensure the installed binary is on the `PATH`
+ENV PATH="/root/.cargo/bin/:$PATH"
 
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 
 WORKDIR "/app"
 RUN chown nobody /app
+
+COPY pyproject.toml pyproject.toml
+COPY uv.lock uv.lock
+RUN uv sync --frozen
+
+COPY models models
+COPY meta_data.py meta_data.py
+COPY api.py api.py
+COPY run_config.py run_config.py
+COPY update_aircraft.py update_aircraft.py
+COPY update_session_token.py update_session_token.py
+COPY update_world.py update_world.py
 
 # set runner ENV
 ENV MIX_ENV="prod"
 
 # Only copy the final release from the build stage
-COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/autoAE ./
+COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/auto_ae ./
 
 USER nobody
 
