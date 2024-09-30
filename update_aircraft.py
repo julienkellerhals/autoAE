@@ -1,7 +1,8 @@
 import argparse
 
-import api
-from db import get_session_id_by_id, add_aircraft
+from api import get_aircraft_stats
+from models.accounts import get_account_by_id
+from models.aircraft import add_aircraft
 
 parser = argparse.ArgumentParser()
 
@@ -11,9 +12,9 @@ args = parser.parse_args()
 
 
 def main() -> None:
-    session_id = get_session_id_by_id(args.account_id)
+    account = get_account_by_id(args.account_id)
 
-    aircraft_stats_df = api.get_aircraft_stats(session_id)
+    aircraft_stats_df = get_aircraft_stats(account.session_id)
     add_aircraft(args.account_id, aircraft_stats_df)
 
 
