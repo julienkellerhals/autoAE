@@ -61,14 +61,14 @@ defmodule AutoAEWeb.AccountController do
   def run_world(conn, %{"account_password" => account_params}) do
     case Accounts.create_account_password(account_params) do
       {:ok} ->
-        Accounts.delete_all_accounts_from_user(account_params["username"])
-
         System.cmd("python3", [
           "update_world.py",
-          "-u",
+          "--username",
           account_params["username"],
-          "-p",
-          account_params["password"]
+          "--password",
+          account_params["password"],
+          "--user_id",
+          to_string(conn.assigns.current_user.id)
         ])
 
         conn
@@ -106,7 +106,9 @@ defmodule AutoAEWeb.AccountController do
           "-w",
           account.world,
           "-a",
-          account.airline
+          account.airline,
+          "--user_id",
+          to_string(conn.assigns.current_user.id)
         ])
 
         Task.async(fn ->
