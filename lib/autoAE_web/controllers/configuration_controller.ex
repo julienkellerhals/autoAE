@@ -80,18 +80,19 @@ defmodule AutoAEWeb.ConfigurationController do
     IO.inspect(account_id)
     IO.inspect(configuration_id)
 
-    Task.async(fn ->
-      System.cmd("python3", [
-        "run_config.py",
-        "--account_id",
-        account_id,
-        "--configuration_id",
-        configuration_id
-      ])
-    end)
+    # Task.async(fn ->
+    System.cmd("python3", [
+      "run_config.py",
+      "--account_id",
+      account_id,
+      "--configuration_id",
+      configuration_id
+    ])
+
+    # end)
 
     conn
     |> put_flash(:info, "Running selected configuration")
-    |> redirect(to: ~p"/accounts/#{account_id}/configurations/#{configuration_id}")
+    |> redirect(to: ~p"/accounts/#{account_id}/configurations")
   end
 end
