@@ -89,11 +89,11 @@ ENV LC_ALL=en_US.UTF-8
 WORKDIR "/app"
 RUN chown nobody /app
 
-WORKDIR "/app/bin"
 COPY pyproject.toml pyproject.toml
 COPY uv.lock uv.lock
 RUN uv sync --frozen
 
+WORKDIR "/app/bin"
 COPY models models
 COPY meta_data.py meta_data.py
 COPY api.py api.py
