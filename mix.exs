@@ -3,7 +3,7 @@ defmodule AutoAE.MixProject do
 
   def project do
     [
-      app: :autoAE,
+      app: :auto_ae,
       version: "0.1.0",
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
