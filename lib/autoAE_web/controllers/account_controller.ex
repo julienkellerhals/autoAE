@@ -6,7 +6,7 @@ defmodule AutoAEWeb.AccountController do
   alias AutoAE.Accounts.AccountPassword
 
   def index(conn, _params) do
-    accounts = Accounts.list_accounts()
+    accounts = Accounts.list_accounts(conn.assigns.current_user.id)
     render(conn, :index, accounts: accounts)
   end
 
@@ -92,8 +92,6 @@ defmodule AutoAEWeb.AccountController do
 
   def run_connect(conn, %{"account_id" => account_id, "account_password" => account_params}) do
     account = Accounts.get_account!(account_id)
-    IO.inspect(account_id)
-    IO.inspect(account)
 
     case Accounts.create_account_password(account_params) do
       {:ok} ->
@@ -115,7 +113,9 @@ defmodule AutoAEWeb.AccountController do
           System.cmd("python3", [
             "update_aircraft.py",
             "--account_id",
-            account_id
+            account_id,
+            "--user_id",
+            to_string(conn.assigns.current_user.id)
           ])
         end)
 

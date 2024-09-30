@@ -362,8 +362,9 @@ defmodule AutoAE.Accounts do
       [%Account{}, ...]
 
   """
-  def list_accounts do
-    Repo.all(Account)
+  def list_accounts(user_id) do
+    from(a in Account, where: a.user_id == ^user_id)
+    |> Repo.all()
   end
 
   @doc """

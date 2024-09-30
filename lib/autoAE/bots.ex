@@ -17,8 +17,9 @@ defmodule AutoAE.Bots do
       [%Aircraft{}, ...]
 
   """
-  def list_aircraft do
-    Repo.all(Aircraft)
+  def list_aircraft(user_id, account_id) do
+    from(a in Aircraft, where: a.user_id == ^user_id and a.account_id == ^account_id)
+    |> Repo.all()
   end
 
   @doc """
@@ -113,8 +114,12 @@ defmodule AutoAE.Bots do
       [%Configuration{}, ...]
 
   """
-  def list_configurations do
-    Repo.all(Configuration)
+  def list_configurations(user_id, account_id) do
+    query =
+      from a in Configuration, where: a.user_id == ^user_id, where: a.account_id == ^account_id
+
+    query
+    |> Repo.all()
   end
 
   @doc """

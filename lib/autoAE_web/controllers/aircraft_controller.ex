@@ -5,7 +5,7 @@ defmodule AutoAEWeb.AircraftController do
   alias AutoAE.Bots.Aircraft
 
   def index(conn, %{"account_id" => account_id}) do
-    aircraft = Bots.list_aircraft()
+    aircraft = Bots.list_aircraft(conn.assigns.current_user.id, account_id)
     render(conn, :index, account_id: account_id, aircraft_collection: aircraft)
   end
 
