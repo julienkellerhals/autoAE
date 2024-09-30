@@ -7,7 +7,7 @@ defmodule AutoAE.Bots.Aircraft do
     field :aircraft, :string
     field :min_runway, :integer
     field :account_id, :id
-    field :user_id, :id
+    belongs_to :user, AutoAE.Accounts.User
 
     timestamps(type: :utc_datetime)
   end
