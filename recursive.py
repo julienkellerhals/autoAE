@@ -8,32 +8,36 @@ import pandas as pd
 args = AEArgParser.createArgParser()
 
 try:
-    varValue = vars(args)['pickled']
+    varValue = vars(args)["pickled"]
 except KeyError:
     varValue = None
 
-if (varValue == None):
+if varValue == None:
     forumSessidReq = api.get_page_session()
-    worldReq, airlineDf = api.doLogin(args, forumSessidReq)
+    worldReq, airlineDf = api.do_login(args, forumSessidReq)
     phpSessidReq = api.doEnterWorld(args, airlineDf, worldReq)
 else:
-    f = open(varValue, 'rb')
+    f = open(varValue, "rb")
     phpSessidReq = pickle.loads(f.read())
 
 # get start route params
 recursion = userInput.setVar(args, "recursion", "Continue previous recursion? (y/n) ")
-flightCountry = ''
-flightRegion = ''
+flightCountry = ""
+flightRegion = ""
 requiredRunway = userInput.setVar(args, "reqRW", "Minimum runway length: ")
-rangeMin = ''
+rangeMin = ""
 rangeMax = userInput.setVar(args, "rgMax", "Flight maximum range: ")
 depAirportCode = userInput.setVar(args, "depAirportCode", "Departure airport code: ")
 
 # get recursion params
 aircraftType = userInput.setVar(args, "aircraftType", "Aircraft type to use: ")
-reducedCapacityFlag = userInput.setVar(args, "reducedCapacity", "Allow flights over intended range? (y/n) ")
+reducedCapacityFlag = userInput.setVar(
+    args, "reducedCapacity", "Allow flights over intended range? (y/n) "
+)
 autoSlots = userInput.setVar(args, "autoSlots", "Automatically buy slots? (y/n) ")
-autoTerminal = userInput.setVar(args, "autoTerminal", "Automatically build terminal? (y/n) ")
+autoTerminal = userInput.setVar(
+    args, "autoTerminal", "Automatically build terminal? (y/n) "
+)
 autoHub = userInput.setVar(args, "autoHub", "Automatically create hub? (y/n) ")
 minFreq = userInput.setVar(args, "minFreq", "Aircraft min frequency: ")
 maxFreq = userInput.setVar(args, "maxFreq", "Aircraft max frequency: ")
@@ -41,12 +45,12 @@ maxFreq = userInput.setVar(args, "maxFreq", "Aircraft max frequency: ")
 airportListCsv = "airportList/airportList_{}.csv".format(aircraftType)
 doneAirportListCsv = "doneAirportList/doneAirportList_{}.csv".format(aircraftType)
 
-if not os.path.isdir('./airportList'):
-    os.mkdir('airportList')
-if not os.path.isdir('./doneAirportList'):
-    os.mkdir('doneAirportList')
+if not os.path.isdir("./airportList"):
+    os.mkdir("airportList")
+if not os.path.isdir("./doneAirportList"):
+    os.mkdir("doneAirportList")
 
-if (recursion == 'n'):
+if recursion == "n":
     f = open(airportListCsv, "w")
     f.write("airport")
     f.write("\n")
@@ -63,7 +67,7 @@ searchParams = {
     "runway": requiredRunway,
     "rangemin": rangeMin,
     "rangemax": rangeMax,
-    "city": depAirportCode
+    "city": depAirportCode,
 }
 
 while len(open(airportListCsv).readlines()) > 1:
@@ -73,10 +77,10 @@ while len(open(airportListCsv).readlines()) > 1:
 
     for _, airport in depAirportsDf.iterrows():
         # replace dep with new airport
-        searchParams["city"] = airport['airport']
+        searchParams["city"] = airport["airport"]
         # get all reachable airports from dep with args
-        print("getting all possible routes from {}".format(airport['airport']))
-        listFlightsReq, flightsDf = api.getFlights(phpSessidReq, searchParams)
+        print("getting all possible routes from {}".format(airport["airport"]))
+        listFlightsReq, flightsDf = api.get_flights(phpSessidReq, searchParams)
 
         # Add current destination to done list
         doneAirportSeries = pd.Series(index=["airport"], data=searchParams["city"])
@@ -88,26 +92,27 @@ while len(open(airportListCsv).readlines()) > 1:
         depAirportsDf = depAirportsDf.drop_duplicates(keep="first")
         depAirportsDf = pd.concat([depAirportsDf, doneAirportDf])
         depAirportsDf = depAirportsDf.drop_duplicates(keep=False)
-        depAirportsDf = depAirportsDf[depAirportsDf['airport'] != searchParams["city"]]
+        depAirportsDf = depAirportsDf[depAirportsDf["airport"] != searchParams["city"]]
         depAirportsDf.to_csv(airportListCsv, index=False)
 
-        availableFlightsDf = flightsDf[["airport","flightUrl","slots","gatesAvailable"]].loc[flightsDf['flightCreated'] == False]
+        availableFlightsDf = flightsDf[
+            ["airport", "flightUrl", "slots", "gatesAvailable"]
+        ].loc[flightsDf["flightCreated"] == False]
         if not availableFlightsDf.empty:
             print("Available flights")
             print(availableFlightsDf.to_string(index=False))
 
             # Add hub
-            if (autoHub == "y"):
-                api.addHub(phpSessidReq, searchParams["city"])
+            if autoHub == "y":
+                api.add_hub(phpSessidReq, searchParams["city"])
 
-            print("{:20} {:10} {:10} {:10}".format(
-                    "Destination",
-                    "First",
-                    "Business",
-                    "Economy"
-                ))
+            print(
+                "{:20} {:10} {:10} {:10}".format(
+                    "Destination", "First", "Business", "Economy"
+                )
+            )
             for idx, flight in availableFlightsDf.iterrows():
-                api.createFlight(
+                api.create_flight(
                     phpSessidReq,
                     searchParams["city"],
                     aircraftType,
@@ -116,7 +121,7 @@ while len(open(airportListCsv).readlines()) > 1:
                     autoTerminal,
                     minFreq,
                     maxFreq,
-                    flight
+                    flight,
                 )
         else:
             print("No new flights available.")

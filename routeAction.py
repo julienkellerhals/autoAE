@@ -3,7 +3,7 @@ import AEArgParser
 
 args = AEArgParser.createArgParser()
 forumSessidReq = api.get_page_session()
-worldReq, airlineDf = api.doLogin(args, forumSessidReq)
+worldReq, airlineDf = api.do_login(args, forumSessidReq)
 phpSessidReq = api.doEnterWorld(args, airlineDf, worldReq)
 
 while True:

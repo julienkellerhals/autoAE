@@ -1,0 +1,11 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input field={f[:aircraft]} type="text" label="Aircraft" />
+  <.input field={f[:range]} type="number" label="Range" />
+  <.input field={f[:min_runway]} type="number" label="Min runway" />
+  <:actions>
+    <.button>Save Aircraft</.button>
+  </:actions>
+</.simple_form>

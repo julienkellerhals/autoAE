@@ -1,0 +1,12 @@
+<.header>
+  New Configuration
+  <:subtitle>Use this form to manage configuration records in your database.</:subtitle>
+</.header>
+
+<.configuration_form
+  changeset={@changeset}
+  action={~p"/accounts/#{@account_id}/configurations"}
+  aircraft={@aircraft}
+/>
+
+<.back navigate={~p"/accounts/#{@account_id}/configurations"}>Back to configurations</.back>

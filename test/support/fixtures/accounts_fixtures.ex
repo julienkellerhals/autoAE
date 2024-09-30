@@ -28,4 +28,21 @@ defmodule AutoAE.AccountsFixtures do
     [_, token | _] = String.split(captured_email.text_body, "[TOKEN]")
     token
   end
+
+  @doc """
+  Generate a account.
+  """
+  def account_fixture(attrs \\ %{}) do
+    {:ok, account} =
+      attrs
+      |> Enum.into(%{
+        airline: "some airline",
+        session_id: "some session_id",
+        username: "some username",
+        world: "some world"
+      })
+      |> AutoAE.Accounts.create_account()
+
+    account
+  end
 end

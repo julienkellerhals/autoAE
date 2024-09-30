@@ -1,0 +1,31 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input field={f[:country]} type="text" label="Country" />
+  <.input field={f[:region]} type="text" label="Region" />
+  <.input field={f[:min_range]} type="number" label="Min range" />
+  <.input field={f[:max_range]} type="number" label="Max range" />
+  <.input field={f[:departure_airport_code]} type="text" label="Departure airport code" />
+  <.input field={f[:auto_slot]} type="checkbox" label="Auto slot" />
+  <.input field={f[:auto_terminal]} type="checkbox" label="Auto terminal" />
+  <.input field={f[:auto_hub]} type="checkbox" label="Auto hub" />
+  <.input field={f[:min_frequency]} type="number" label="Min frequency" />
+  <.input field={f[:max_frequency]} type="number" label="Max frequency" />
+
+  <.input
+    type="select"
+    label="Aircraft"
+    prompt="Select an aircraft"
+    field={f[:aircraft_id]}
+    options={
+      Enum.sort_by(@aircraft, & &1.id)
+      |> Enum.map(fn a -> {a.aircraft, a.id} end)
+    }
+    value={nil}
+  />
+
+  <:actions>
+    <.button>Save Configuration</.button>
+  </:actions>
+</.simple_form>

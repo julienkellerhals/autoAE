@@ -24,8 +24,8 @@ if config_env() == :prod do
   database_path =
     System.get_env("DATABASE_PATH") ||
       raise """
-      environment variable DATABASE_PATH is missing.
-      For example: /etc/autoae/autoae.db
+      environment variable DATABASE_URL is missing.
+      For example: ecto://USER:PASS@HOST/DATABASE
       """
 
   config :autoAE, AutoAE.Repo,
