@@ -1,4 +1,3 @@
-from typing import Optional
 from datetime import datetime
 
 import pandas as pd
@@ -17,12 +16,12 @@ class Aircraft(Base):
     range: Mapped[int]
     min_runway: Mapped[int]
     account_id: Mapped[int]
-    user_id: Mapped[Optional[int]]
-    inserted_at: Mapped[Optional[str]]
-    updated_at: Mapped[Optional[str]]
+    user_id: Mapped[int]
+    inserted_at: Mapped[str]
+    updated_at: Mapped[str]
 
 
-def add_aircraft(account_id: int, aircraft_stats: pd.DataFrame):
+def add_aircraft(account_id: int, aircraft_stats: pd.DataFrame, user_id: int):
     session = Session(ENGINE)
 
     for _, aircraft in aircraft_stats.iterrows():
@@ -31,7 +30,7 @@ def add_aircraft(account_id: int, aircraft_stats: pd.DataFrame):
             range=aircraft["range"],
             min_runway=aircraft["min_runway"],
             account_id=account_id,
-            # TODO add user id
+            user_id=user_id,
             inserted_at=str(datetime.now()),
             updated_at=str(datetime.now()),
         )
