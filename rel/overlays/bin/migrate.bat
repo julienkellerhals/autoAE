@@ -1,1 +1,1 @@
-call "%~dp0\autoAE" eval AutoAE.Release.migrate
+call "%~dp0\auto_ae" eval AutoAE.Release.migrate
