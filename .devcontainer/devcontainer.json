@@ -53,5 +53,9 @@
 		}
 	},
 	"remoteUser": "vscode",
-	"postCreateCommand": "uv sync"
+	"postCreateCommand": "uv sync",
+	"runArgs": [
+		"--env-file",
+		".devcontainer/.env"
+	]
 }

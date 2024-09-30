@@ -11,15 +11,22 @@
         "editor.foldingStrategy": "indentation"
     },
     "cSpell.words": [
+        "actype",
+        "addflights",
         "Anson",
         "anteprimorac",
+        "astype",
         "atlascode",
         "atlassian",
         "autoae",
         "autodocstring",
         "azuretools",
         "bradlc",
+        "cacerts",
         "charliermarsh",
+        "citext",
+        "confirmaddflights",
+        "debugpy",
         "devcontainers",
         "dotenv",
         "eamodio",
@@ -27,24 +34,32 @@
         "esbenp",
         "Expt",
         "FHNW",
+        "glairport",
         "Gruntfuggly",
         "intellicode",
         "isort",
+        "iterrows",
         "jebbs",
         "Kellerhals",
         "littlefoxteam",
         "mdcsv",
         "Mebrahtom",
         "mechatroner",
+        "newflights",
         "njpwerner",
         "phoenixframework",
+        "PHPSESSID",
         "plantuml",
         "plantumlpreviewer",
+        "postgresql",
         "pydantic",
         "pylance",
         "pylint",
         "pymssql",
         "qwtel",
+        "rangemax",
+        "rangemin",
+        "sqlalchemy",
         "sqlite",
         "stylesheet",
         "tailwindcss",
@@ -69,7 +84,8 @@
     "[python]": {
         "editor.codeActionsOnSave": {
             "source.fixAll": "explicit"
-        }
+        },
+        "editor.defaultFormatter": "charliermarsh.ruff"
     },
     "ruff.enable": true,
     "ruff.path": [
@@ -78,13 +94,6 @@
     "ruff.lint.run": "onType",
     "ruff.lint.args": [
         "pyproject.toml"
-    ],
-    "black-formatter.path": [
-        ".venv/bin/black"
-    ],
-    "black-formatter.args": [
-        "--config",
-        "${workspaceFolder}/pyproject.toml"
     ],
     "pylint.path": [
         ".venv/bin/pylint"

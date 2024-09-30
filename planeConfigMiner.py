@@ -9,11 +9,11 @@ flightRequestColumns = [
     "arrAirport",
     "flightDemandF",
     "flightDemandC",
-    "flightDemandY"
+    "flightDemandY",
 ]
 
 try:
-    flightRequestDf = pd.read_csv(flightRequestCsv, sep=';')
+    flightRequestDf = pd.read_csv(flightRequestCsv, sep=";")
 except FileNotFoundError as e:
     print(e)
     flightRequestDf = pd.DataFrame(columns=flightRequestColumns)
@@ -32,16 +32,23 @@ tryServer = True
 while tryServer:
     airlineName = input("Please enter one of above mentioned airline names: ")
     # TODO Problem if airline has the same name on different server
-    worldId = airlineDf[['worldId']].loc[airlineDf['name'] == airlineName].to_string(header=False, index=False).strip()
-    userId = airlineDf[['userId']].loc[airlineDf['name'] == airlineName].to_string(header=False, index=False).strip()
-    if ('Empty DataFrame' not in worldId and 'Empty DataFrame' not in userId):
+    worldId = (
+        airlineDf[["worldId"]]
+        .loc[airlineDf["name"] == airlineName]
+        .to_string(header=False, index=False)
+        .strip()
+    )
+    userId = (
+        airlineDf[["userId"]]
+        .loc[airlineDf["name"] == airlineName]
+        .to_string(header=False, index=False)
+        .strip()
+    )
+    if "Empty DataFrame" not in worldId and "Empty DataFrame" not in userId:
         tryServer = False
     else:
         print("Airline does not exist, retry.")
-gameServer = {
-    "world": worldId,
-    "userid": userId
-}
+gameServer = {"world": worldId, "userid": userId}
 
 
 # enter world
@@ -53,39 +60,36 @@ phpSessidReq = api.enterWorld(worldReq, gameServer)
 depAirportCode = input("Datamining start airport code: ")
 
 searchParams = {
-    "country": '',
-    "region": '',
-    "runway": '',
-    "rangemin": '',
-    "rangemax": '',
-    "city": depAirportCode
+    "country": "",
+    "region": "",
+    "runway": "",
+    "rangemin": "",
+    "rangemax": "",
+    "city": depAirportCode,
 }
 
 # get all reachable airports from dep with args
 print("getting all possible routes from {}".format(depAirportCode))
-listFlightsReq, flightsDf = api.getFlights(phpSessidReq, searchParams)
+listFlightsReq, flightsDf = api.get_flights(phpSessidReq, searchParams)
 if not flightsDf.empty:
     print("Possible flights")
     print(flightsDf.to_string(index=False))
 
-    print("{:20} {:10} {:10} {:10}".format(
-            "Destination",
-            "First",
-            "Business",
-            "Economy"
-    ))
+    print(
+        "{:20} {:10} {:10} {:10}".format("Destination", "First", "Business", "Economy")
+    )
     for idx, flight in flightsDf.iterrows():
-        flightDemand = api.getFlightDemand(
-            phpSessidReq,
-            flight
+        flightDemand = api.get_flight_demand(phpSessidReq, flight)
+        flightDemandSeries = pd.Series(
+            [
+                depAirportCode,
+                flight["airport"],
+                flightDemand[0],
+                flightDemand[1],
+                flightDemand[2],
+            ],
+            index=flightRequestColumns,
         )
-        flightDemandSeries = pd.Series([
-            depAirportCode,
-            flight['airport'],
-            flightDemand[0],
-            flightDemand[1],
-            flightDemand[2]
-        ], index=flightRequestColumns)
         flightRequestDf = flightRequestDf.append(flightDemandSeries, ignore_index=True)
 
-flightRequestDf.to_csv(flightRequestCsv, sep=';', index=False)
+flightRequestDf.to_csv(flightRequestCsv, sep=";", index=False)

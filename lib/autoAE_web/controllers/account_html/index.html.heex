@@ -16,7 +16,15 @@
     <div class="sr-only">
       <.link navigate={~p"/accounts/#{account}"}>Show</.link>
     </div>
-    <.link navigate={~p"/accounts/#{account}/connect"}>Connect</.link>
+    <.link navigate={~p"/accounts/#{account}/connect"}>
+      <.button>Connect</.button>
+    </.link>
+    <.link navigate={~p"/accounts/#{account}/aircraft"}>
+      <.button>Show aircraft</.button>
+    </.link>
+    <.link navigate={~p"/accounts/#{account}/configurations"}>
+      <.button>Show configurations</.button>
+    </.link>
     <.link navigate={~p"/accounts/#{account}/edit"}>Edit</.link>
   </:action>
   <:action :let={account}>

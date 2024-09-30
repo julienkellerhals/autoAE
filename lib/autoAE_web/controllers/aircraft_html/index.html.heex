@@ -1,0 +1,33 @@
+<.header>
+  Listing Aircraft
+  <:actions>
+    <.link href={~p"/accounts/#{@account_id}/aircraft/new"}>
+      <.button>New Aircraft</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="aircraft"
+  rows={@aircraft_collection}
+  row_click={&JS.navigate(~p"/accounts/#{@account_id}/aircraft/#{&1}")}
+>
+  <:col :let={aircraft} label="Aircraft"><%= aircraft.aircraft %></:col>
+  <:col :let={aircraft} label="Range"><%= aircraft.range %></:col>
+  <:col :let={aircraft} label="Min runway"><%= aircraft.min_runway %></:col>
+  <:action :let={aircraft}>
+    <div class="sr-only">
+      <.link navigate={~p"/accounts/#{@account_id}/aircraft/#{aircraft}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/accounts/#{@account_id}/aircraft/#{aircraft}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={aircraft}>
+    <.link
+      href={~p"/accounts/#{@account_id}/aircraft/#{aircraft}"}
+      method="delete"
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>

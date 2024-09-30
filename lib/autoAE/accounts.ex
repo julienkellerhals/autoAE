@@ -362,8 +362,9 @@ defmodule AutoAE.Accounts do
       [%Account{}, ...]
 
   """
-  def list_accounts do
-    Repo.all(Account)
+  def list_accounts(user_id) do
+    from(a in Account, where: a.user_id == ^user_id)
+    |> Repo.all()
   end
 
   @doc """
@@ -445,6 +446,22 @@ defmodule AutoAE.Accounts do
   """
   def change_account(%Account{} = account, attrs \\ %{}) do
     Account.changeset(account, attrs)
+  end
+
+  @doc """
+  Deletes all accounts attached to the user.
+
+  ## Examples
+
+      iex> delete_all_accounts_from_user("existing_user")
+
+      iex> delete_all_accounts_from_user("unknown_user")
+
+  """
+  def delete_all_accounts_from_user(username) when is_binary(username) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete_all(:accounts, from(a in Account, where: a.username == ^username))
+    |> Repo.transaction()
   end
 
   @doc """
