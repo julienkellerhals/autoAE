@@ -61,15 +61,19 @@ defmodule AutoAEWeb.AccountController do
   def run_world(conn, %{"account_password" => account_params}) do
     case Accounts.create_account_password(account_params) do
       {:ok} ->
-        System.cmd(".venv/bin/python3", [
-          "update_world.py",
-          "--username",
-          account_params["username"],
-          "--password",
-          account_params["password"],
-          "--user_id",
-          to_string(conn.assigns.current_user.id)
-        ])
+        # System.cmd("python3", [
+        {output, _code} =
+          System.cmd(".venv/bin/python3", [
+            "update_world.py",
+            "--username",
+            account_params["username"],
+            "--password",
+            account_params["password"],
+            "--user_id",
+            to_string(conn.assigns.current_user.id)
+          ])
+
+        IO.inspect(output)
 
         conn
         |> put_flash(
@@ -95,21 +99,25 @@ defmodule AutoAEWeb.AccountController do
 
     case Accounts.create_account_password(account_params) do
       {:ok} ->
-        System.cmd(".venv/bin/python3", [
-          "update_session_token.py",
-          "-u",
-          account.username,
-          "-p",
-          account_params["password"],
-          "-w",
-          account.world,
-          "-a",
-          account.airline,
-          "--user_id",
-          to_string(conn.assigns.current_user.id)
-        ])
+        {output, _code} =
+          System.cmd(".venv/bin/python3", [
+            "update_session_token.py",
+            "-u",
+            account.username,
+            "-p",
+            account_params["password"],
+            "-w",
+            account.world,
+            "-a",
+            account.airline,
+            "--user_id",
+            to_string(conn.assigns.current_user.id)
+          ])
 
-        Task.async(fn ->
+        IO.puts(output)
+
+        # Task.async(fn ->
+        {output, _code} =
           System.cmd(".venv/bin/python3", [
             "update_aircraft.py",
             "--account_id",
@@ -117,7 +125,10 @@ defmodule AutoAEWeb.AccountController do
             "--user_id",
             to_string(conn.assigns.current_user.id)
           ])
-        end)
+
+        # end)
+
+        IO.puts(output)
 
         conn
         |> put_flash(
