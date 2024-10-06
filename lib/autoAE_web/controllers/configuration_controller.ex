@@ -80,21 +80,23 @@ defmodule AutoAEWeb.ConfigurationController do
   end
 
   def run(conn, %{"account_id" => account_id, "configuration_id" => configuration_id}) do
-    # Task.async(fn ->
-    {output, _code} =
-      System.cmd(".venv/bin/python3", [
-        "run_config.py",
-        "--account_id",
-        account_id,
-        "--configuration_id",
-        configuration_id
-        # "--user_id",
-        # to_string(conn.assigns.current_user.id)
-      ])
+    payload =
+      %{
+        account_id: account_id,
+        configuration_id: configuration_id
+        # user_id: to_string(conn.assigns.current_user.id)
+      }
 
-    IO.puts(output)
+    {status, response} =
+      ExAws.Lambda.invoke(
+        "AutoAeScriptsStack-runConfiguration96A0EB2F-7r0fHL1rmB1C",
+        payload,
+        %{}
+      )
+      |> ExAws.request(region: System.get_env("AWS_REGION"))
 
-    # end)
+    IO.inspect(status)
+    IO.inspect(response)
 
     conn
     |> put_flash(:info, "Running selected configuration")
