@@ -61,19 +61,23 @@ defmodule AutoAEWeb.AccountController do
   def run_world(conn, %{"account_password" => account_params}) do
     case Accounts.create_account_password(account_params) do
       {:ok} ->
-        # System.cmd("python3", [
-        {output, _code} =
-          System.cmd(".venv/bin/python3", [
-            "update_world.py",
-            "--username",
-            account_params["username"],
-            "--password",
-            account_params["password"],
-            "--user_id",
-            to_string(conn.assigns.current_user.id)
-          ])
+        payload =
+          %{
+            username: account_params["username"],
+            password: account_params["password"],
+            user_id: to_string(conn.assigns.current_user.id)
+          }
 
-        IO.inspect(output)
+        {status, response} =
+          ExAws.Lambda.invoke(
+            "AutoAeScriptsStack-updateWorldB0013F59-s2GzEDmoStNs",
+            payload,
+            %{}
+          )
+          |> ExAws.request(region: System.get_env("AWS_REGION"))
+
+        IO.inspect(status)
+        IO.inspect(response)
 
         conn
         |> put_flash(
@@ -99,36 +103,42 @@ defmodule AutoAEWeb.AccountController do
 
     case Accounts.create_account_password(account_params) do
       {:ok} ->
-        {output, _code} =
-          System.cmd(".venv/bin/python3", [
-            "update_session_token.py",
-            "-u",
-            account.username,
-            "-p",
-            account_params["password"],
-            "-w",
-            account.world,
-            "-a",
-            account.airline,
-            "--user_id",
-            to_string(conn.assigns.current_user.id)
-          ])
+        payload =
+          %{
+            username: account.username,
+            password: account_params["password"],
+            world: account.world,
+            airline: account.airline,
+            user_id: to_string(conn.assigns.current_user.id)
+          }
 
-        IO.puts(output)
+        {status, response} =
+          ExAws.Lambda.invoke(
+            "AutoAeScriptsStack-updateSessionToken92E1A2E7-gtN4PcN3n6KS",
+            payload,
+            %{}
+          )
+          |> ExAws.request(region: System.get_env("AWS_REGION"))
 
-        # Task.async(fn ->
-        {output, _code} =
-          System.cmd(".venv/bin/python3", [
-            "update_aircraft.py",
-            "--account_id",
-            account_id,
-            "--user_id",
-            to_string(conn.assigns.current_user.id)
-          ])
+        IO.inspect(status)
+        IO.inspect(response)
 
-        # end)
+        payload =
+          %{
+            account_id: account_id,
+            user_id: to_string(conn.assigns.current_user.id)
+          }
 
-        IO.puts(output)
+        {status, response} =
+          ExAws.Lambda.invoke(
+            "AutoAeScriptsStack-updateAircraft9268BCB3-q0sUqisUtcBn",
+            payload,
+            %{}
+          )
+          |> ExAws.request(region: System.get_env("AWS_REGION"))
+
+        IO.inspect(status)
+        IO.inspect(response)
 
         conn
         |> put_flash(
