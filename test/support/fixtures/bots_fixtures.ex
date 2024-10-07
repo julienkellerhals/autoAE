@@ -1,7 +1,7 @@
-defmodule AutoAE.BotsFixtures do
+defmodule AutoAe.BotsFixtures do
   @moduledoc """
   This module defines test helpers for creating
-  entities via the `AutoAE.Bots` context.
+  entities via the `AutoAe.Bots` context.
   """
 
   @doc """
@@ -13,7 +13,7 @@ defmodule AutoAE.BotsFixtures do
       |> Enum.into(%{
         aircraft: "some aircraft"
       })
-      |> AutoAE.Bots.create_aircraft()
+      |> AutoAe.Bots.create_aircraft()
 
     aircraft
   end
@@ -29,7 +29,7 @@ defmodule AutoAE.BotsFixtures do
         min_runway: 42,
         range: 42
       })
-      |> AutoAE.Bots.create_aircraft()
+      |> AutoAe.Bots.create_aircraft()
 
     aircraft
   end
@@ -45,7 +45,7 @@ defmodule AutoAE.BotsFixtures do
         min_runway: 42,
         range: 42
       })
-      |> AutoAE.Bots.create_aircraft()
+      |> AutoAe.Bots.create_aircraft()
 
     aircraft
   end
@@ -68,7 +68,7 @@ defmodule AutoAE.BotsFixtures do
         min_range: 42,
         region: "some region"
       })
-      |> AutoAE.Bots.create_configuration()
+      |> AutoAe.Bots.create_configuration()
 
     configuration
   end

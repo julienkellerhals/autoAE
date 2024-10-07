@@ -1,0 +1,53 @@
+<.header>
+  Listing Flights
+  <:actions>
+    <.link patch={~p"/flights/new"}>
+      <.button>New Flights</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="flights"
+  rows={@streams.flights_collection}
+  row_click={fn {_id, flights} -> JS.navigate(~p"/flights/#{flights}") end}
+>
+  <:col :let={{_id, flights}} label="Airport"><%= flights.airport %></:col>
+  <:col :let={{_id, flights}} label="Flight url"><%= flights.flight_url %></:col>
+  <:col :let={{_id, flights}} label="Flight created"><%= flights.flight_created %></:col>
+  <:col :let={{_id, flights}} label="Slots"><%= flights.slots %></:col>
+  <:col :let={{_id, flights}} label="Gates available"><%= flights.gates_available %></:col>
+  <:col :let={{_id, flights}} label="Freq f"><%= flights.freq_f %></:col>
+  <:col :let={{_id, flights}} label="Freq request f"><%= flights.freq_request_f %></:col>
+  <:col :let={{_id, flights}} label="Freq c"><%= flights.freq_c %></:col>
+  <:col :let={{_id, flights}} label="Freq request c"><%= flights.freq_request_c %></:col>
+  <:col :let={{_id, flights}} label="Freq y"><%= flights.freq_y %></:col>
+  <:col :let={{_id, flights}} label="Freq request y"><%= flights.freq_request_y %></:col>
+  <:col :let={{_id, flights}} label="Avg freq"><%= flights.avg_freq %></:col>
+  <:col :let={{_id, flights}} label="Flight criteria"><%= flights.flight_criteria %></:col>
+  <:action :let={{_id, flights}}>
+    <div class="sr-only">
+      <.link navigate={~p"/flights/#{flights}"}>Show</.link>
+    </div>
+    <.link patch={~p"/flights/#{flights}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, flights}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: flights.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="flights-modal" show on_cancel={JS.patch(~p"/flights")}>
+  <.live_component
+    module={AutoAeWeb.FlightsLive.FormComponent}
+    id={@flights.id || :new}
+    title={@page_title}
+    action={@live_action}
+    flights={@flights}
+    patch={~p"/flights"}
+  />
+</.modal>

@@ -1,4 +1,4 @@
-defmodule AutoAE.MixProject do
+defmodule AutoAe.MixProject do
   use Mix.Project
 
   def project do
@@ -18,7 +18,7 @@ defmodule AutoAE.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {AutoAE.Application, []},
+      mod: {AutoAe.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end

@@ -1,4 +1,4 @@
-defmodule AutoAE.Repo.Migrations.CreateUsersAuthTables do
+defmodule AutoAe.Repo.Migrations.CreateUsersAuthTables do
     use Ecto.Migration
 
     def change do

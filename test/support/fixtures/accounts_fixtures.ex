@@ -1,7 +1,7 @@
-defmodule AutoAE.AccountsFixtures do
+defmodule AutoAe.AccountsFixtures do
   @moduledoc """
   This module defines test helpers for creating
-  entities via the `AutoAE.Accounts` context.
+  entities via the `AutoAe.Accounts` context.
   """
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
@@ -18,7 +18,7 @@ defmodule AutoAE.AccountsFixtures do
     {:ok, user} =
       attrs
       |> valid_user_attributes()
-      |> AutoAE.Accounts.register_user()
+      |> AutoAe.Accounts.register_user()
 
     user
   end
@@ -41,7 +41,7 @@ defmodule AutoAE.AccountsFixtures do
         username: "some username",
         world: "some world"
       })
-      |> AutoAE.Accounts.create_account()
+      |> AutoAe.Accounts.create_account()
 
     account
   end

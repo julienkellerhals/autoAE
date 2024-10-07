@@ -1,5 +1,5 @@
 {
-	"name": "AutoAE",
+	"name": "AutoAe",
 	"build": {
 		"dockerfile": "./Dockerfile",
 		"context": "."

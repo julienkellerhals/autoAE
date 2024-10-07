@@ -8,18 +8,18 @@
 import Config
 
 config :auto_ae,
-  ecto_repos: [AutoAE.Repo],
+  ecto_repos: [AutoAe.Repo],
   generators: [timestamp_type: :utc_datetime]
 
 # Configures the endpoint
-config :auto_ae, AutoAEWeb.Endpoint,
+config :auto_ae, AutoAeWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [html: AutoAEWeb.ErrorHTML, json: AutoAEWeb.ErrorJSON],
+    formats: [html: AutoAeWeb.ErrorHTML, json: AutoAeWeb.ErrorJSON],
     layout: false
   ],
-  pubsub_server: AutoAE.PubSub,
+  pubsub_server: AutoAe.PubSub,
   live_view: [signing_salt: "QhEbtLi+"]
 
 # Configures the mailer
@@ -29,7 +29,7 @@ config :auto_ae, AutoAEWeb.Endpoint,
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
-config :auto_ae, AutoAE.Mailer, adapter: Swoosh.Adapters.Local
+config :auto_ae, AutoAe.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
 config :esbuild,

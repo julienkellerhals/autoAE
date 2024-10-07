@@ -17,7 +17,7 @@ import Config
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
 if System.get_env("PHX_SERVER") do
-  config :auto_ae, AutoAEWeb.Endpoint, server: true
+  config :auto_ae, AutoAeWeb.Endpoint, server: true
 end
 
 if config_env() == :prod do
@@ -49,7 +49,7 @@ if config_env() == :prod do
       For example: ecto://USER:PASS@HOST/DATABASE
       """
 
-  config :auto_ae, AutoAE.Repo,
+  config :auto_ae, AutoAe.Repo,
     # database: database_url,
     database: database,
     username: username,
@@ -75,7 +75,7 @@ if config_env() == :prod do
 
   config :auto_ae, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
-  config :auto_ae, AutoAEWeb.Endpoint,
+  config :auto_ae, AutoAeWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
     http: [
       # Enable IPv6 and bind on all interfaces.
@@ -92,7 +92,7 @@ if config_env() == :prod do
   # To get SSL working, you will need to add the `https` key
   # to your endpoint configuration:
   #
-  #     config :auto_ae, AutoAEWeb.Endpoint,
+  #     config :auto_ae, AutoAeWeb.Endpoint,
   #       https: [
   #         ...,
   #         port: 443,
@@ -114,7 +114,7 @@ if config_env() == :prod do
   # We also recommend setting `force_ssl` in your config/prod.exs,
   # ensuring no data is ever sent via http, always redirecting to https:
   #
-  #     config :auto_ae, AutoAEWeb.Endpoint,
+  #     config :auto_ae, AutoAeWeb.Endpoint,
   #       force_ssl: [hsts: true]
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
@@ -125,7 +125,7 @@ if config_env() == :prod do
   # Also, you may need to configure the Swoosh API client of your choice if you
   # are not using SMTP. Here is an example of the configuration:
   #
-  #     config :auto_ae, AutoAE.Mailer,
+  #     config :auto_ae, AutoAe.Mailer,
   #       adapter: Swoosh.Adapters.Mailgun,
   #       api_key: System.get_env("MAILGUN_API_KEY"),
   #       domain: System.get_env("MAILGUN_DOMAIN")
