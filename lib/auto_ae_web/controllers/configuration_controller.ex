@@ -78,32 +78,4 @@ defmodule AutoAeWeb.ConfigurationController do
     |> put_flash(:info, "Configuration deleted successfully.")
     |> redirect(to: ~p"/accounts/#{account_id}/configurations")
   end
-
-  def run(conn, %{"account_id" => account_id, "configuration_id" => configuration_id}) do
-    payload =
-      %{
-        account_id: account_id,
-        configuration_id: configuration_id
-        # user_id: to_string(conn.assigns.current_user.id)
-      }
-
-    {status, response} =
-      ExAws.Lambda.invoke(
-        "AutoAeScriptsStack-runConfiguration96A0EB2F-7r0fHL1rmB1C",
-        payload,
-        %{}
-      )
-      |> ExAws.request(
-        retry_options: [max_attempts: 5, base_backoff_in_ms: 1000],
-        hackney_opts: [recv_timeout: 600_000, timeout: 600_000],
-        region: System.get_env("AWS_REGION")
-      )
-
-    IO.inspect(status)
-    IO.inspect(response)
-
-    conn
-    |> put_flash(:info, "Running selected configuration")
-    |> redirect(to: ~p"/accounts/#{account_id}/configurations")
-  end
 end
