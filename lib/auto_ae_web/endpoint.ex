@@ -6,7 +6,7 @@ defmodule AutoAeWeb.Endpoint do
   # Set :encryption_salt if you would also like to encrypt it.
   @session_options [
     store: :cookie,
-    key: "_autoAE_key",
+    key: "_auto_ae_key",
     signing_salt: "bRQd3d8k",
     same_site: "Lax"
   ]

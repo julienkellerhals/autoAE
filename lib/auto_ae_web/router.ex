@@ -69,7 +69,13 @@ defmodule AutoAeWeb.Router do
 
     resources "/accounts", AccountController do
       resources "/aircraft", AircraftController
-      resources "/configurations", ConfigurationController
+      resources "/configurations", ConfigurationController do
+        live "/flights", FlightsLive.Index, :index
+        live "/flights/new", FlightsLive.Index, :new
+        live "/flights/:id/edit", FlightsLive.Index, :edit
+        live "/flights/:id", FlightsLive.Show, :show
+        live "/flights/:id/show/edit", FlightsLive.Show, :edit
+      end
     end
 
     get "/accounts/:account_id/connect", AccountController, :connect
@@ -79,12 +85,6 @@ defmodule AutoAeWeb.Router do
         ConfigurationController,
         :run
 
-    # live "/flights", FlightsLive.Index, :index
-    # live "/flights/new", FlightsLive.Index, :new
-    # live "/flights/:id/edit", FlightsLive.Index, :edit
-
-    # live "/flights/:id", FlightsLive.Show, :show
-    # live "/flights/:id/show/edit", FlightsLive.Show, :edit
 
     live_session :require_authenticated_user,
       on_mount: [{AutoAeWeb.UserAuth, :ensure_authenticated}] do

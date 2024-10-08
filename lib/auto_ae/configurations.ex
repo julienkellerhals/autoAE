@@ -9,16 +9,36 @@ defmodule AutoAe.Configurations do
   alias AutoAe.Configurations.Flights
 
   @doc """
-  Returns the list of flights.
+  Returns the list of flights belonging to the configuration.
 
   ## Examples
 
-      iex> list_flights()
+      iex> list_flights(1)
       [%Flights{}, ...]
 
   """
-  def list_flights do
-    Repo.all(Flights)
+  def list_flights(configuration_id) do
+    from(f in Flights, where: f.configuration_id == ^configuration_id, order_by: f.id)
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns the list of all available flights belonging to the configuration.
+
+  ## Examples
+
+      iex> list_available_flights(1)
+      [%Flights{}, ...]
+
+  """
+  def list_available_flights(configuration_id) do
+    Flights
+    |> where([f], f.configuration_id == ^configuration_id)
+    |> where([f], f.flight_created == false)
+    |> where([f], is_nil(f.configuration_criteria) or f.configuration_criteria == true)
+    |> order_by([f], f.id)
+    |> limit([f], 2)
+    |> Repo.all()
   end
 
   @doc """

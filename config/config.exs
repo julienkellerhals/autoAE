@@ -34,7 +34,7 @@ config :auto_ae, AutoAe.Mailer, adapter: Swoosh.Adapters.Local
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.17.11",
-  autoAE: [
+  auto_ae: [
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
@@ -44,7 +44,7 @@ config :esbuild,
 # Configure tailwind (the version is required)
 config :tailwind,
   version: "3.4.3",
-  autoAE: [
+  auto_ae: [
     args: ~w(
       --config=tailwind.config.js
       --input=css/app.css

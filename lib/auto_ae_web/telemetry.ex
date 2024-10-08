@@ -52,23 +52,23 @@ defmodule AutoAeWeb.Telemetry do
       ),
 
       # Database Metrics
-      summary("autoAE.repo.query.total_time",
+      summary("auto_ae.repo.query.total_time",
         unit: {:native, :millisecond},
         description: "The sum of the other measurements"
       ),
-      summary("autoAE.repo.query.decode_time",
+      summary("auto_ae.repo.query.decode_time",
         unit: {:native, :millisecond},
         description: "The time spent decoding the data received from the database"
       ),
-      summary("autoAE.repo.query.query_time",
+      summary("auto_ae.repo.query.query_time",
         unit: {:native, :millisecond},
         description: "The time spent executing the query"
       ),
-      summary("autoAE.repo.query.queue_time",
+      summary("auto_ae.repo.query.queue_time",
         unit: {:native, :millisecond},
         description: "The time spent waiting for a database connection"
       ),
-      summary("autoAE.repo.query.idle_time",
+      summary("auto_ae.repo.query.idle_time",
         unit: {:native, :millisecond},
         description:
           "The time the connection spent waiting before being checked out for the query"

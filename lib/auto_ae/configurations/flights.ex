@@ -5,17 +5,17 @@ defmodule AutoAe.Configurations.Flights do
   schema "flights" do
     field :airport, :string
     field :flight_url, :string
-    field :flight_created, :boolean, default: false
     field :slots, :integer
     field :gates_available, :boolean, default: false
     field :freq_f, :float
-    field :freq_request_f, :integer
+    field :flight_demand_f, :integer
     field :freq_c, :float
-    field :freq_request_c, :integer
+    field :flight_demand_c, :integer
     field :freq_y, :float
-    field :freq_request_y, :integer
+    field :flight_demand_y, :integer
     field :avg_freq, :float
-    field :flight_criteria, :boolean, default: false
+    field :configuration_criteria, :boolean, default: false
+    field :flight_created, :boolean, default: false
     field :configuration_id, :id
 
     timestamps(type: :utc_datetime)
@@ -24,7 +24,15 @@ defmodule AutoAe.Configurations.Flights do
   @doc false
   def changeset(flights, attrs) do
     flights
-    |> cast(attrs, [:airport, :flight_url, :flight_created, :slots, :gates_available, :freq_f, :freq_request_f, :freq_c, :freq_request_c, :freq_y, :freq_request_y, :avg_freq, :flight_criteria])
-    |> validate_required([:airport, :flight_url, :flight_created, :slots, :gates_available, :freq_f, :freq_request_f, :freq_c, :freq_request_c, :freq_y, :freq_request_y, :avg_freq, :flight_criteria])
+    |> cast(attrs, [
+      :airport,
+      :flight_url,
+      :flight_created
+    ])
+    |> validate_required([
+      :airport,
+      :flight_url,
+      :flight_created
+    ])
   end
 end

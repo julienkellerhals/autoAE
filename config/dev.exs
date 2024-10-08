@@ -26,8 +26,8 @@ config :auto_ae, AutoAeWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "OzV1REJaercpyRL9tTXzB14DcxDNhGfUF8I1/V+LveEEwN2MmoxiNzoRoVHq2lQd",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:autoAE, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:autoAE, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:auto_ae, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:auto_ae, ~w(--watch)]}
   ]
 
 # ## SSL Support
@@ -59,7 +59,7 @@ config :auto_ae, AutoAeWeb.Endpoint,
     patterns: [
       ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/autoAE_web/(controllers|live|components)/.*(ex|heex)$"
+      ~r"lib/auto_ae_web/(controllers|live|components)/.*(ex|heex)$"
     ]
   ]
 

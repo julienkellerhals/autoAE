@@ -80,10 +80,10 @@ defmodule AutoAe.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["tailwind autoAE", "esbuild autoAE"],
+      "assets.build": ["tailwind auto_ae", "esbuild auto_ae"],
       "assets.deploy": [
-        "tailwind autoAE --minify",
-        "esbuild autoAE --minify",
+        "tailwind auto_ae --minify",
+        "esbuild auto_ae --minify",
         "phx.digest"
       ]
     ]
