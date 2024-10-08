@@ -7,13 +7,13 @@ defmodule AutoAe.Repo.Migrations.CreateFlights do
       add :flight_url, :string
       add :slots, :integer
       add :gates_available, :boolean, default: false, null: false
-      add :freq_f, :float
-      add :freq_request_f, :integer
-      add :freq_c, :float
-      add :freq_request_c, :integer
-      add :freq_y, :float
-      add :freq_request_y, :integer
-      add :avg_freq, :float
+      add :freq_f, :float, null: true
+      add :flight_demand_f, :integer, null: true
+      add :freq_c, :float, null: true
+      add :flight_demand_c, :integer, null: true
+      add :freq_y, :float, null: true
+      add :flight_demand_y, :integer, null: true
+      add :avg_freq, :float, null: true
       add :configuration_criteria, :boolean, default: nil, null: true
       add :flight_created, :boolean, default: false, null: false
       add :configuration_id, references(:configurations, on_delete: :nothing)

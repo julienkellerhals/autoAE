@@ -28,7 +28,9 @@
     <div class="sr-only">
       <.link navigate={~p"/accounts/#{@account_id}/configurations/#{configuration}"}>Show</.link>
     </div>
-
+    <.link navigate={~p"/accounts/#{@account_id}/configurations/#{configuration}/flights"}>
+      Show flights
+    </.link>
     <.link navigate={~p"/accounts/#{@account_id}/configurations/#{configuration}/run"}>Run</.link>
     <.link navigate={~p"/accounts/#{@account_id}/configurations/#{configuration}/edit"}>
       Edit

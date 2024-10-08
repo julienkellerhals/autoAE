@@ -2,7 +2,12 @@
   Flights <%= @flights.id %>
   <:subtitle>This is a flights record from your database.</:subtitle>
   <:actions>
-    <.link patch={~p"/flights/#{@flights}/show/edit"} phx-click={JS.push_focus()}>
+    <.link
+      patch={
+        ~p"/accounts/#{@account_id}/configurations/#{@configuration_id}/flights/#{@flights}/show/edit"
+      }
+      phx-click={JS.push_focus()}
+    >
       <.button>Edit flights</.button>
     </.link>
   </:actions>
@@ -15,24 +20,33 @@
   <:item title="Slots"><%= @flights.slots %></:item>
   <:item title="Gates available"><%= @flights.gates_available %></:item>
   <:item title="Freq f"><%= @flights.freq_f %></:item>
-  <:item title="Freq request f"><%= @flights.freq_request_f %></:item>
+  <:item title="Freq request f"><%= @flights.flight_demand_f %></:item>
   <:item title="Freq c"><%= @flights.freq_c %></:item>
-  <:item title="Freq request c"><%= @flights.freq_request_c %></:item>
+  <:item title="Freq request c"><%= @flights.flight_demand_c %></:item>
   <:item title="Freq y"><%= @flights.freq_y %></:item>
-  <:item title="Freq request y"><%= @flights.freq_request_y %></:item>
+  <:item title="Freq request y"><%= @flights.flight_demand_y %></:item>
   <:item title="Avg freq"><%= @flights.avg_freq %></:item>
-  <:item title="Flight criteria"><%= @flights.flight_criteria %></:item>
+  <:item title="Flight criteria"><%= @flights.configuration_criteria %></:item>
 </.list>
 
-<.back navigate={~p"/flights"}>Back to flights</.back>
+<.back navigate={~p"/accounts/#{@account_id}/configurations/#{@configuration_id}/flights"}>
+  Back to flights
+</.back>
 
-<.modal :if={@live_action == :edit} id="flights-modal" show on_cancel={JS.patch(~p"/flights/#{@flights}")}>
+<.modal
+  :if={@live_action == :edit}
+  id="flights-modal"
+  show
+  on_cancel={
+    JS.patch(~p"/accounts/#{@account_id}/configurations/#{@configuration_id}/flights/#{@flights}")
+  }
+>
   <.live_component
     module={AutoAeWeb.FlightsLive.FormComponent}
     id={@flights.id}
     title={@page_title}
     action={@live_action}
     flights={@flights}
-    patch={~p"/flights/#{@flights}"}
+    patch={~p"/accounts/#{@account_id}/configurations/#{@configuration_id}/flights/#{@flights}"}
   />
 </.modal>

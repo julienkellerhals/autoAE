@@ -1,7 +1,13 @@
 <.header>
-  Listing Flights
+  Listing flights from <%!-- TODO --%>
+  <br />
   <:actions>
-    <.link patch={~p"/flights/new"}>
+    <.link phx-click={
+      JS.push("run", value: %{account_id: @account_id, configuration_id: @configuration_id})
+    }>
+      <.button>Run</.button>
+    </.link>
+    <.link patch={~p"/accounts/#{@account_id}/configurations/#{@configuration_id}/flights/new"}>
       <.button>New Flights</.button>
     </.link>
   </:actions>
@@ -10,26 +16,54 @@
 <.table
   id="flights"
   rows={@streams.flights_collection}
-  row_click={fn {_id, flights} -> JS.navigate(~p"/flights/#{flights}") end}
+  row_click={
+    fn {_id, flights} ->
+      JS.navigate(
+        ~p"/accounts/#{@account_id}/configurations/#{@configuration_id}/flights/#{flights}"
+      )
+    end
+  }
 >
   <:col :let={{_id, flights}} label="Airport"><%= flights.airport %></:col>
-  <:col :let={{_id, flights}} label="Flight url"><%= flights.flight_url %></:col>
   <:col :let={{_id, flights}} label="Flight created"><%= flights.flight_created %></:col>
   <:col :let={{_id, flights}} label="Slots"><%= flights.slots %></:col>
   <:col :let={{_id, flights}} label="Gates available"><%= flights.gates_available %></:col>
-  <:col :let={{_id, flights}} label="Freq f"><%= flights.freq_f %></:col>
-  <:col :let={{_id, flights}} label="Freq request f"><%= flights.freq_request_f %></:col>
-  <:col :let={{_id, flights}} label="Freq c"><%= flights.freq_c %></:col>
-  <:col :let={{_id, flights}} label="Freq request c"><%= flights.freq_request_c %></:col>
-  <:col :let={{_id, flights}} label="Freq y"><%= flights.freq_y %></:col>
-  <:col :let={{_id, flights}} label="Freq request y"><%= flights.freq_request_y %></:col>
-  <:col :let={{_id, flights}} label="Avg freq"><%= flights.avg_freq %></:col>
-  <:col :let={{_id, flights}} label="Flight criteria"><%= flights.flight_criteria %></:col>
+  <:col :let={{_id, flights}} label="Frequency F">
+    <%= case flights.freq_f do
+      nil -> nil
+      _ -> Float.round(flights.freq_f, 2)
+    end %>
+  </:col>
+  <:col :let={{_id, flights}} label="Flight demand F"><%= flights.flight_demand_f %></:col>
+  <:col :let={{_id, flights}} label="Frequency C">
+    <%= case flights.freq_c do
+      nil -> nil
+      _ -> Float.round(flights.freq_c, 2)
+    end %>
+  </:col>
+  <:col :let={{_id, flights}} label="Flight demand C"><%= flights.flight_demand_c %></:col>
+  <:col :let={{_id, flights}} label="Frequency Y">
+    <%= case flights.freq_y do
+      nil -> nil
+      _ -> Float.round(flights.freq_y, 2)
+    end %>
+  </:col>
+  <:col :let={{_id, flights}} label="Flight demand Y"><%= flights.flight_demand_y %></:col>
+  <:col :let={{_id, flights}} label="Average Frequency"><%= flights.avg_freq %></:col>
+  <:col :let={{_id, flights}} label="Flight criteria"><%= flights.configuration_criteria %></:col>
   <:action :let={{_id, flights}}>
     <div class="sr-only">
-      <.link navigate={~p"/flights/#{flights}"}>Show</.link>
+      <.link navigate={
+        ~p"/accounts/#{@account_id}/configurations/#{@configuration_id}/flights/#{flights}"
+      }>
+        Show
+      </.link>
     </div>
-    <.link patch={~p"/flights/#{flights}/edit"}>Edit</.link>
+    <.link patch={
+      ~p"/accounts/#{@account_id}/configurations/#{@configuration_id}/flights/#{flights}/edit"
+    }>
+      Edit
+    </.link>
   </:action>
   <:action :let={{id, flights}}>
     <.link
@@ -41,13 +75,18 @@
   </:action>
 </.table>
 
-<.modal :if={@live_action in [:new, :edit]} id="flights-modal" show on_cancel={JS.patch(~p"/flights")}>
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="flights-modal"
+  show
+  on_cancel={JS.patch(~p"/accounts/#{@account_id}/configurations/#{@configuration_id}/flights")}
+>
   <.live_component
     module={AutoAeWeb.FlightsLive.FormComponent}
     id={@flights.id || :new}
     title={@page_title}
     action={@live_action}
     flights={@flights}
-    patch={~p"/flights"}
+    patch={~p"/accounts/#{@account_id}/configurations/#{@configuration_id}/flights"}
   />
 </.modal>

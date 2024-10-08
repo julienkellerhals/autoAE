@@ -25,13 +25,13 @@ defmodule AutoAeWeb.FlightsLive.FormComponent do
         <.input field={@form[:slots]} type="number" label="Slots" />
         <.input field={@form[:gates_available]} type="checkbox" label="Gates available" />
         <.input field={@form[:freq_f]} type="number" label="Freq f" step="any" />
-        <.input field={@form[:freq_request_f]} type="number" label="Freq request f" />
+        <.input field={@form[:flight_demand_f]} type="number" label="Flight demand f" />
         <.input field={@form[:freq_c]} type="number" label="Freq c" step="any" />
-        <.input field={@form[:freq_request_c]} type="number" label="Freq request c" />
+        <.input field={@form[:flight_demand_c]} type="number" label="Flight demand c" />
         <.input field={@form[:freq_y]} type="number" label="Freq y" step="any" />
-        <.input field={@form[:freq_request_y]} type="number" label="Freq request y" />
+        <.input field={@form[:flight_demand_y]} type="number" label="Flight demand y" />
         <.input field={@form[:avg_freq]} type="number" label="Avg freq" step="any" />
-        <.input field={@form[:flight_criteria]} type="checkbox" label="Flight criteria" />
+        <.input field={@form[:configuration_criteria]} type="checkbox" label="Flight criteria" />
         <:actions>
           <.button phx-disable-with="Saving...">Save Flights</.button>
         </:actions>
