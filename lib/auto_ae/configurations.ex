@@ -18,7 +18,10 @@ defmodule AutoAe.Configurations do
 
   """
   def list_flights(configuration_id) do
-    from(f in Flights, where: f.configuration_id == ^configuration_id, order_by: f.id)
+    from(f in Flights,
+      where: f.configuration_id == ^configuration_id and f.flight_created == false,
+      order_by: f.id
+    )
     |> Repo.all()
   end
 
@@ -37,7 +40,6 @@ defmodule AutoAe.Configurations do
     |> where([f], f.flight_created == false)
     |> where([f], is_nil(f.configuration_criteria) or f.configuration_criteria == true)
     |> order_by([f], f.id)
-    |> limit([f], 2)
     |> Repo.all()
   end
 
