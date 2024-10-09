@@ -22,8 +22,24 @@ defmodule AutoAeWeb.ConfigurationController do
     |> Bots.create_configuration()
     |> case do
       {:ok, configuration} ->
+        payload =
+          %{
+            configuration_id: configuration.id
+          }
+
+        {status, response} =
+          ExAws.Lambda.invoke(
+            "AutoAeScriptsStack-updateFlightsC2110FE0-HbcRQDnpcNAH",
+            payload,
+            %{}
+          )
+          |> ExAws.request(region: System.get_env("AWS_REGION"))
+
+        IO.inspect(status)
+        IO.inspect(response)
+
         conn
-        |> put_flash(:info, "Configuration created successfully.")
+        |> put_flash(:info, "Configuration created successfully and flight list created.")
         |> redirect(to: ~p"/accounts/#{account_id}/configurations/#{configuration}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
