@@ -13,12 +13,12 @@
 #
 ARG ELIXIR_VERSION=1.17.2
 ARG OTP_VERSION=26.2.5.3
-ARG DEBIAN_VERSION=bullseye-20240904-slim
+ARG DEBIAN_VERSION=bullseye-20240904
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 
-FROM ${BUILDER_IMAGE} as builder
+FROM ${BUILDER_IMAGE} AS builder
 
 # install build dependencies
 RUN apt update -y && apt install -y build-essential git \
@@ -68,8 +68,12 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 RUN apt update -y && \
-  apt install -y libstdc++6 openssl libncurses5 locales ca-certificates \
+  apt install -y libstdc++6 openssl libncurses5 locales ca-certificates python3 curl \
   && apt clean && rm -f /var/lib/apt/lists/*_*
+
+RUN cp /usr/bin/python3 /usr/bin/python
+# Download the latest installer
+ADD https://astral.sh/uv/install.sh /app/bin/uv-installer.sh
 
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
@@ -78,16 +82,43 @@ ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
 
+RUN useradd -ms /bin/sh docker
+
 WORKDIR "/app"
-RUN chown nobody /app
+RUN chown docker /app
+RUN chown docker /app/bin
+RUN chown docker /app/bin/uv-installer.sh
+
+USER docker
+
+WORKDIR "/app/bin"
+
+# Run the installer then remove it
+# RUN sh /app/bin/uv-installer.sh
+RUN sh /app/bin/uv-installer.sh && rm /app/bin/uv-installer.sh
+# Ensure the installed binary is on the `PATH`
+ENV PATH="/home/docker/.cargo/bin/:$PATH"
+
+COPY pyproject.toml pyproject.toml
+COPY uv.lock uv.lock
+RUN uv sync --frozen
+
+COPY models models
+COPY meta_data.py meta_data.py
+COPY api.py api.py
+COPY run_config.py run_config.py
+COPY update_aircraft.py update_aircraft.py
+COPY update_session_token.py update_session_token.py
+COPY update_world.py update_world.py
+
+WORKDIR "/app"
 
 # set runner ENV
 ENV MIX_ENV="prod"
 
 # Only copy the final release from the build stage
-COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/auto_ae ./
+COPY --from=builder --chown=docker:root /app/_build/${MIX_ENV}/rel/auto_ae ./
 
-USER nobody
 
 # If using an environment that doesn't automatically reap zombie processes, it is
 # advised to add an init process such as tini via `apt-get install`
