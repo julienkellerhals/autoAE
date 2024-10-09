@@ -68,7 +68,7 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 RUN apt update -y && \
-  apt install -y libstdc++6 openssl libncurses5 locales ca-certificates \
+  apt install -y libstdc++6 openssl libncurses5 locales ca-certificates curl \
   && apt clean && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale
