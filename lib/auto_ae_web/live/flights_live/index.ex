@@ -57,7 +57,6 @@ defmodule AutoAeWeb.FlightsLive.Index do
 
   @impl true
   def handle_info({:update, flight}, socket) do
-    IO.inspect(socket)
     {:noreply, stream_insert(socket, :flights_collection, flight)}
   end
 
@@ -67,7 +66,12 @@ defmodule AutoAeWeb.FlightsLive.Index do
         %{"account_id" => account_id, "configuration_id" => configuration_id},
         socket
       ) do
-    run_configuration(socket, account_id, configuration_id)
+    Task.async(fn -> run_configuration(account_id, configuration_id) end)
+
+    {:noreply,
+     socket
+     |> put_flash(:info, "Running flight creation. Refreshing page stops script.")
+     |> push_patch(to: ~p"/accounts/#{account_id}/configurations/#{configuration_id}/flights/")}
   end
 
   @impl true
@@ -78,7 +82,7 @@ defmodule AutoAeWeb.FlightsLive.Index do
     {:noreply, stream_delete(socket, :flights_collection, flights)}
   end
 
-  defp run_configuration(socket, account_id, configuration_id) do
+  defp run_configuration(_account_id, configuration_id) do
     flights = Configurations.list_available_flights(configuration_id)
 
     for flight <- flights do
@@ -86,7 +90,7 @@ defmodule AutoAeWeb.FlightsLive.Index do
         flight_id: flight.id
       }
 
-      {_status, _response} =
+      {status, response} =
         ExAws.Lambda.invoke(
           "AutoAeScriptsStack-runConfiguration96A0EB2F-7r0fHL1rmB1C",
           payload,
@@ -94,12 +98,15 @@ defmodule AutoAeWeb.FlightsLive.Index do
         )
         |> ExAws.request(region: System.get_env("AWS_REGION"))
 
-      send(self(), {:update, Configurations.get_flights!(flight.id)})
+      IO.inspect(status)
+      IO.inspect(response)
+
+      # send(self(), {:update, Configurations.get_flights!(flight.id)})
     end
 
-    {:noreply,
-     socket
-     |> put_flash(:info, "Flights updated successfully")
-     |> push_patch(to: ~p"/accounts/#{account_id}/configurations/#{configuration_id}/flights/")}
+    # {:noreply,
+    #  socket
+    #  |> put_flash(:info, "Flights updated successfully")
+    #  |> push_patch(to: ~p"/accounts/#{account_id}/configurations/#{configuration_id}/flights/")}
   end
 end
