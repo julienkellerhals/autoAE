@@ -1,4 +1,4 @@
-defmodule AutoAE.MixProject do
+defmodule AutoAe.MixProject do
   use Mix.Project
 
   def project do
@@ -18,7 +18,7 @@ defmodule AutoAE.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {AutoAE.Application, []},
+      mod: {AutoAe.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
@@ -80,10 +80,10 @@ defmodule AutoAE.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["tailwind autoAE", "esbuild autoAE"],
+      "assets.build": ["tailwind auto_ae", "esbuild auto_ae"],
       "assets.deploy": [
-        "tailwind autoAE --minify",
-        "esbuild autoAE --minify",
+        "tailwind auto_ae --minify",
+        "esbuild auto_ae --minify",
         "phx.digest"
       ]
     ]

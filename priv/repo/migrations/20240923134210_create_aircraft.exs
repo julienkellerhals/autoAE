@@ -1,4 +1,4 @@
-defmodule AutoAE.Repo.Migrations.CreateAircraft do
+defmodule AutoAe.Repo.Migrations.CreateAircraft do
   use Ecto.Migration
 
   def change do

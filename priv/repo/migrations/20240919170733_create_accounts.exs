@@ -1,4 +1,4 @@
-defmodule AutoAE.Repo.Migrations.CreateAccounts do
+defmodule AutoAe.Repo.Migrations.CreateAccounts do
   use Ecto.Migration
 
   def change do

@@ -1,0 +1,47 @@
+<.header>
+  Listing Configurations
+  <:actions>
+    <.link href={~p"/accounts/#{@account_id}/configurations/new"}>
+      <.button>New Configuration</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="configurations"
+  rows={@configurations}
+  row_click={&JS.navigate(~p"/accounts/#{@account_id}/configurations/#{&1}")}
+>
+  <:col :let={configuration} label="Country"><%= configuration.country %></:col>
+  <:col :let={configuration} label="Region"><%= configuration.region %></:col>
+  <:col :let={configuration} label="Min range"><%= configuration.min_range %></:col>
+  <:col :let={configuration} label="Max range"><%= configuration.max_range %></:col>
+  <:col :let={configuration} label="Departure airport code">
+    <%= configuration.departure_airport_code %>
+  </:col>
+  <:col :let={configuration} label="Auto slot"><%= configuration.auto_slot %></:col>
+  <:col :let={configuration} label="Auto terminal"><%= configuration.auto_terminal %></:col>
+  <:col :let={configuration} label="Auto hub"><%= configuration.auto_hub %></:col>
+  <:col :let={configuration} label="Min frequency"><%= configuration.min_frequency %></:col>
+  <:col :let={configuration} label="Max frequency"><%= configuration.max_frequency %></:col>
+  <:action :let={configuration}>
+    <div class="sr-only">
+      <.link navigate={~p"/accounts/#{@account_id}/configurations/#{configuration}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/accounts/#{@account_id}/configurations/#{configuration}/flights"}>
+      Show flights
+    </.link>
+    <.link navigate={~p"/accounts/#{@account_id}/configurations/#{configuration}/edit"}>
+      Edit
+    </.link>
+  </:action>
+  <:action :let={configuration}>
+    <.link
+      href={~p"/accounts/#{@account_id}/configurations/#{configuration}"}
+      method="delete"
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
