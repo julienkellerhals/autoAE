@@ -3,6 +3,7 @@ defmodule AutoAeWeb.ConfigurationController do
 
   alias AutoAe.Bots
   alias AutoAe.Bots.Configuration
+  alias AutoAe.Configurations
 
   def index(conn, %{"account_id" => account_id}) do
     configurations = Bots.list_configurations(conn.assigns.current_user.id, account_id)
@@ -93,5 +94,36 @@ defmodule AutoAeWeb.ConfigurationController do
     conn
     |> put_flash(:info, "Configuration deleted successfully.")
     |> redirect(to: ~p"/accounts/#{account_id}/configurations")
+  end
+
+  def run(conn, %{"account_id" => account_id, "configuration_id" => configuration_id}) do
+    Task.start(fn ->
+      flights = Configurations.list_available_flights(configuration_id)
+
+      for flight <- flights do
+        IO.inspect(flight)
+
+        payload = %{
+          flight_id: flight.id
+        }
+
+        # Invoke AWS Lambda function
+        {status, response} =
+          ExAws.Lambda.invoke(
+            "AutoAeScriptsStack-runConfiguration96A0EB2F-7r0fHL1rmB1C",
+            payload,
+            %{}
+          )
+          |> ExAws.request(region: System.get_env("AWS_REGION"))
+
+        IO.inspect(status)
+        IO.inspect(response)
+      end
+    end)
+
+    # Respond to the user immediately
+    conn
+    |> put_flash(:info, "Running flight creation in the background.")
+    |> redirect(to: ~p"/accounts/#{account_id}/configurations/#{configuration_id}/flights/")
   end
 end
