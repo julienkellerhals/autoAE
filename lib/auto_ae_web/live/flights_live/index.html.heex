@@ -2,9 +2,7 @@
   Listing flights from <%!-- TODO --%>
   <br />
   <:actions>
-    <.link phx-click={
-      JS.push("run", value: %{account_id: @account_id, configuration_id: @configuration_id})
-    }>
+    <.link navigate={~p"/accounts/#{@account_id}/configurations/#{@configuration_id}/run"}>
       <.button>Run</.button>
     </.link>
     <.link patch={~p"/accounts/#{@account_id}/configurations/#{@configuration_id}/flights/new"}>
